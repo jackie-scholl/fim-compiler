@@ -17,9 +17,10 @@ public class Compiler {
 	public static void main(String[] args) throws FileNotFoundException, IOException{
 		String filename = "HelloWorld.fim.txt";
 		BufferedReader in = new BufferedReader(new FileReader(filename));
-		PrintStream out = new PrintStream(new FileOutputStream("Hello_World.java"));
+		PrintStream out = new PrintStream(new FileOutputStream("src\\com\\twitter\\raptortech97\\git\\rand\\fimcompiler\\Hello_World.java"));
 		String text = in.readLine();
 		
+		out.println("// AUTO-GENERATED CLASS");
 		out.println("package com.twitter.raptortech97.git.rand.fimcompiler;");
 		
 		out.println(interpretLine(text));
@@ -62,5 +63,4 @@ public class Compiler {
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in variable names.
 		return str;
 	}
-
 }
