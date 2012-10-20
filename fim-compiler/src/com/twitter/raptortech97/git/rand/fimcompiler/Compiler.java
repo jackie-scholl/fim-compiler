@@ -17,11 +17,13 @@ public class Compiler {
 	public static void main(String[] args) throws FileNotFoundException, IOException{
 		String filename = "HelloWorld.fim.txt";
 		BufferedReader in = new BufferedReader(new FileReader(filename));
-		PrintStream out = new PrintStream(new FileOutputStream("HelloWorld.java"));
+		PrintStream out = new PrintStream(new FileOutputStream("Hello_World.java"));
 		String text = in.readLine();
+		
+		out.println("package com.twitter.raptortech97.git.rand.fimcompiler;");
+		
 		out.println(interpretLine(text));
 
-		out.println("public class Compiled{");
 		out.println("public static void main(String[] args){");
 		out.println("System.out.println(\"Hello! I'm an auto-generated program!\");");
 		out.println("}");
