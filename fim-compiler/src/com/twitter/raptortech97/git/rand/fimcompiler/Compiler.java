@@ -3,21 +3,24 @@
  * 		Twitter: @raptortech97
  * 		Email:   shades97@gmail.com
  * 		Google+: https://plus.google.com/113116905639811214312/
- * 		GitHub:  https://github.com/raptortech-js
+ * 		GitHub:  raptortech-js
  * 
  * A FiM++ compiler/interpreter written in Java. Compiles the FiM++ to Java as an intermediary.
+ * 
  */
 
 package com.twitter.raptortech97.git.rand.fimcompiler;
 
 import java.io.*;
 import java.util.regex.*;
+import javax.tools.*;
 
 public class Compiler {
 	public static void main(String[] args) throws FileNotFoundException, IOException{
-		String filename = "HelloWorld.fim.txt";
-		BufferedReader in = new BufferedReader(new FileReader(filename));
-		PrintStream out = new PrintStream(new FileOutputStream("src\\com\\twitter\\raptortech97\\git\\rand\\fimcompiler\\Hello_World.java"));
+		String fileInName = "HelloWorld.fim.txt";
+		String fileOutName = "src\\com\\twitter\\raptortech97\\git\\rand\\fimcompiler\\Hello_World.java";
+		BufferedReader in = new BufferedReader(new FileReader(fileInName));
+		PrintStream out = new PrintStream(new FileOutputStream(fileOutName));
 		String text = in.readLine();
 		
 		out.println("// AUTO-GENERATED CLASS");
@@ -31,6 +34,14 @@ public class Compiler {
 		out.println("}");
 		out.close();
 		in.close();
+		
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		System.out.println(compiler);
+		int compilationResult = compiler.run(null, null, null, fileOutName);
+		if(compilationResult == 0)
+			System.out.println("Compilation is successful");
+		else
+			System.out.println("Compilation Failed");
 	}
 
 	private static String interpretLine(String text){
