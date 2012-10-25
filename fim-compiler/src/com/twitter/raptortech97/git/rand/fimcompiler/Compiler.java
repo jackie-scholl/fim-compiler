@@ -12,11 +12,16 @@
 package com.twitter.raptortech97.git.rand.fimcompiler;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.regex.*;
 import javax.tools.*;
 
 public class Compiler {
-	public static void main(String[] args) throws FileNotFoundException, IOException{
+	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		String fileInName = "HelloWorld.fim.txt";
 		String fileOutName = "src\\com\\twitter\\raptortech97\\git\\rand\\fimcompiler\\Hello_World.java";
 		BufferedReader in = new BufferedReader(new FileReader(fileInName));
@@ -36,12 +41,27 @@ public class Compiler {
 		in.close();
 		
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		System.out.println(compiler);
 		int compilationResult = compiler.run(null, null, null, fileOutName);
 		if(compilationResult == 0)
 			System.out.println("Compilation is successful");
 		else
 			System.out.println("Compilation Failed");
+		
+		String[] files = new String[]{"src\\"};
+		URL[] urls = new URL[files.length];
+		for(int i=0; i<files.length; i++)
+			urls[i] = new File(files[i]).toURI().toURL();
+		System.out.println(Arrays.deepToString(urls));
+		ClassLoader loader = new URLClassLoader(urls);
+		//ClassLoader loader = ClassLoader.getSystemClassLoader();
+		System.out.println(loader);
+		
+		
+		Class cls = loader.loadClass("com.twitter.raptortech97.git.rand.fimcompiler.Hello_World");
+		System.out.println(cls.getName());
+		String[] strs = new String[1];
+		Method m = cls.getMethod("main", strs.getClass());
+		m.invoke(null, (Object[]) strs);
 	}
 
 	private static String interpretLine(String text){
