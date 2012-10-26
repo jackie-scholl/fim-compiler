@@ -14,6 +14,7 @@ package com.twitter.raptortech97.git.rand.fimcompiler;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -21,16 +22,17 @@ import java.util.regex.*;
 import javax.tools.*;
 
 public class Compiler {
+	public static final String CELESTIA = "C:\\Users\\Jackson\\git\\fim-compiler\\fim-compiler\\src\\com\\twitter\\raptortech97\\git\\rand\\fimcompiler\\";
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
-		String fileInName = "HelloWorld.fim.txt";
-		String fileOutName = "src\\com\\twitter\\raptortech97\\git\\rand\\fimcompiler\\Hello_World.java";
-		BufferedReader in = new BufferedReader(new FileReader(fileInName));
-		PrintStream out = new PrintStream(new FileOutputStream(fileOutName));
-		String text = in.readLine();
+		File fileIn = new File("HelloWorld.fim");
+		File fileOut = new File(fileIn.getAbsolutePath().replace(".fim", ".java"));
+		BufferedReader in = new BufferedReader(new FileReader(fileIn));
+		PrintStream out = new PrintStream(new FileOutputStream(fileOut));
 		
 		out.println("// AUTO-GENERATED CLASS");
-		out.println("package com.twitter.raptortech97.git.rand.fimcompiler;");
+		//out.println("package com.twitter.raptortech97.git.rand.fimcompiler;");
 		
+		String text = in.readLine();
 		out.println(interpretLine(text));
 
 		out.println("public static void main(String[] args){");
@@ -40,28 +42,45 @@ public class Compiler {
 		out.close();
 		in.close();
 		
+		compileJavaThrows(new File(CELESTIA+File.separator +"Princess_Celestia.java"), "com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia");
+		compileJavaThrows(fileOut, "HelloWorld");
+	}
+	
+	private static boolean compileJavaSilent(File source, String className){
+		try {
+			compileJavaThrows(source, className);
+			return true;
+		} catch (ClassNotFoundException | SecurityException | IllegalArgumentException | IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	private static void compileJavaThrows(File source, String className) throws ClassNotFoundException, IOException{
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		int compilationResult = compiler.run(null, null, null, fileOutName);
-		if(compilationResult == 0)
-			System.out.println("Compilation is successful");
-		else
-			System.out.println("Compilation Failed");
 		
-		String[] files = new String[]{"src\\"};
-		URL[] urls = new URL[files.length];
-		for(int i=0; i<files.length; i++)
-			urls[i] = new File(files[i]).toURI().toURL();
+		compiler.run(null, null, null, source.getAbsolutePath());
+		
+		
+		String[] dirs = new String[]{source.getParent(), CELESTIA};
+		URL[] urls = new URL[dirs.length];
+		for(int i=0; i<dirs.length; i++)
+			urls[i] = new File(dirs[i]).toURI().toURL();
 		System.out.println(Arrays.deepToString(urls));
-		ClassLoader loader = new URLClassLoader(urls);
-		//ClassLoader loader = ClassLoader.getSystemClassLoader();
-		System.out.println(loader);
+		URLClassLoader loader = new URLClassLoader(urls);
 		
-		
-		Class cls = loader.loadClass("com.twitter.raptortech97.git.rand.fimcompiler.Hello_World");
+		//Class cls = loader.loadClass(source.getName().replace(".java", ""));
+		//Class cls1 = loader.loadClass("com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia");
+		Class cls = loader.loadClass(className);
+		loader.close();
 		System.out.println(cls.getName());
 		String[] strs = new String[1];
-		Method m = cls.getMethod("main", strs.getClass());
-		m.invoke(null, (Object[]) strs);
+		try {
+			Method m = cls.getMethod("main", strs.getClass());
+			m.invoke(null, (Object[]) strs);
+		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			System.out.println("No main method in class "+className);
+		}
 	}
 
 	private static String interpretLine(String text){
