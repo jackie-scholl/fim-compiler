@@ -29,8 +29,8 @@ public class Compiler {
     BufferedReader in = new BufferedReader(new FileReader(fileIn));
     PrintStream out = new PrintStream(new FileOutputStream(fileOut));
     
+    out.println("package com.twitter.raptortech97.git.rand.fimcompiler;");
     out.println("// AUTO-GENERATED CLASS");
-    //out.println("package com.twitter.raptortech97.git.rand.fimcompiler;");
     
     String text = in.readLine();
     out.println(interpretLine(text));
@@ -44,7 +44,7 @@ public class Compiler {
     
     Class cls1 = compileLoad(CELESTIA).loadClass("com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia");
     ClassLoader loader = compileLoad(fileOut);
-    Class cls2 = loader.loadClass("HelloWorld");
+    Class cls2 = loader.loadClass("com.twitter.raptortech97.git.rand.fimcompiler.HelloWorld");
     runClassMain(cls2);
   }
   
