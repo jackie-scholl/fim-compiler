@@ -7,9 +7,13 @@ public class Interpreter {
 	private static String PUNC_REGEX = "[,?\\.\\!]";
 	private static String QUOTE_MARK = "\\u0022";
 
-	static String interpretLine(String text){
-		String[] results = new String[]{interpretClassDeclaration(text), interpretEndClass(text),
-				interpretVarDecType(text), interpretVarDecTypeVal(text)};
+	public static String interpretLine(String text){
+		if(text == null || text.equals(""))
+			return "";
+		
+		String[] results = new String[]{interpretComment(text), interpretClassDeclaration(text), interpretEndClass(text),
+				interpretVarDecType(text), interpretVarDecTypeVal(text), interpretPrint(text),
+				interpretMethodStart(text), interpretMethodEnd(text), interpretMainMethod(text)};
 		
 		for(String res : results)
 			if(res != null)
@@ -18,13 +22,12 @@ public class Interpreter {
 		return "null // Could not interpret";
 	}
 	
-	static String interpretVarDecType(String text){
+	private static String interpretVarDecType(String text){
 		String pattern = "Did you know that "+getVarRegex("varName")+" is a "+getTypeRegex("typeName")+PUNC_REGEX;
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.find()){
+		if(matcher.matches())
 			return normalizeType(matcher.group("typeName"))+" "+normalizeVarName(matcher.group("varName"))+";";
-		}
 		return null;
 	}
 	
@@ -33,10 +36,9 @@ public class Interpreter {
 				" (?<literal>(\\d+|\\u0022([\\w\\s]+)\\u0022))"+PUNC_REGEX;
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.find()){
+		if(matcher.matches())
 			return normalizeType(matcher.group("typeName"))+" "+normalizeVarName(matcher.group("varName"))+"="+
 						matcher.group("literal")+";";
-		}
 		return null;
 	}
 	
@@ -44,53 +46,86 @@ public class Interpreter {
 		String pattern = "I said "+getVarRegex("varName")+PUNC_REGEX;
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.find()){
-			return normalizeType(matcher.group("typeName"))+" "+normalizeVarName(matcher.group("varName"))+";";
-		}
+		if(matcher.matches())
+			return "System.out.println("+normalizeVarName(matcher.group("varName"))+");";
+		return null;
+	}
+	
+	private static String interpretComment(String text){
+		String pattern = "(P.)+S.(?<comment>[\\w\\s]*)";
+
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "//"+matcher.group("comment");
+		return null;
+	}
+	
+	private static String interpretMethodStart(String text){
+		String pattern = "I learned "+getVarRegex("methodName")+PUNC_REGEX;
+
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "public static void "+normalizeVarName(matcher.group("methodName"))+"(){";
+		return null;
+	}
+	
+	private static String interpretMethodEnd(String text){
+		String pattern = "That's (all )?about "+getVarRegex("methodName")+PUNC_REGEX;
+
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "}";
+		return null;
+	}
+	
+	private static String interpretMainMethod(String text){
+		String pattern = "Today I learned "+getVarRegex("methodName")+PUNC_REGEX;
+
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "public static void main(String[] args){ "+normalizeVarName(matcher.group("methodName"))+"(); }";
 		return null;
 	}
 
-	static String interpretClassDeclaration(String text){
+	private static String interpretClassDeclaration(String text){
 		String pattern = "Dear "+getClassRegex("A")+": "+getClassRegex("B");
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.find())
+		if(matcher.matches())
 			return "public class "+normalizeClassName(matcher.group("B"))+" extends "
-			+normalizeClassName(matcher.group("A"))+"{";
+					+normalizeClassName(matcher.group("A"))+"{";
 		return null;
 	}
 
-	static String interpretEndClass(String text){
+	private static String interpretEndClass(String text){
 		String pattern = "Your faithful student, ([\\w\\s]+)"+PUNC_REGEX;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.find())
+		if(matcher.matches())
 			return "} // Author: "+matcher.group(1);
 		return null;
 	}
 
-	static String CLASS_REGEX = "(([A-Z]+[\\w]*)+( [A-Z]+[\\w]*)*)";
-	static String normalizeClassName(String str){
-		String name = "(([A-Z]+[\\w]*)+( [A-Z]+[\\w]*)*)";
-		Matcher matcher = (Pattern.compile(name)).matcher(str);
-		if(!matcher.find())
+	private static String CLASS_REGEX = "(([A-Z]+[\\w]*)+( [A-Z]+[\\w]*)*)";
+	private static String normalizeClassName(String str){
+		Matcher matcher = (Pattern.compile(CLASS_REGEX)).matcher(str);
+		if(!matcher.matches())
 			System.err.println("Error. Bad class name.");
 
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in class names.
 		return str;
 	}
 
-	static String VAR_REGEX = "[\\w ']+";
-	static String normalizeVarName(String str){
-		String name = "([\\w ']+)";
-		Matcher classMatcher = (Pattern.compile(name)).matcher(str);
-		if(!classMatcher.find())
+	private static String VAR_REGEX = "[\\w ']+";
+	private static String normalizeVarName(String str){
+		Matcher classMatcher = (Pattern.compile(VAR_REGEX)).matcher(str);
+		if(!classMatcher.matches())
 			System.err.println("Error. Bad variable name.");
 
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in variable names.
 		return str;
 	}
 
-	static String TYPE_REGEX = "((logical)|(argument)|(number)|(name)|(character)|(letter))(s|es)*";
-	static String normalizeType(String str){
+	private static String TYPE_REGEX = "((logical)|(argument)|(number)|(name)|(character)|(letter))(s|es)*";
+	private static String normalizeType(String str){
 		str = str.replace("logical", "boolean");
 		str = str.replace("argument", "boolean");
 		
@@ -106,13 +141,13 @@ public class Interpreter {
 		return str;
 	}
 	
-	static String getVarRegex(String str){
+	private static String getVarRegex(String str){
 		return "(?<"+str+">"+VAR_REGEX+")";
 	}
-	static String getTypeRegex(String str){
+	private static String getTypeRegex(String str){
 		return "(?<"+str+">"+TYPE_REGEX+")";
 	}
-	static String getClassRegex(String str){
+	private static String getClassRegex(String str){
 		return "(?<"+str+">"+CLASS_REGEX+")";
 	}
 }

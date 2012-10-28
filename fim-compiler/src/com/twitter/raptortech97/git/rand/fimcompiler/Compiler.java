@@ -39,12 +39,21 @@ public class Compiler {
 		out.println("import com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia;");
 		out.println("// AUTO-GENERATED CLASS");
 
-		out.println(Interpreter.interpretLine(in.readLine()));
-		out.println("public static void main(String[] args){"); in.readLine();
-		out.println("System.out.println(\"Yee-hah!\");"); in.readLine();
-		out.println(Interpreter.interpretLine(in.readLine()));
-		out.println("}"); in.readLine();
-		out.println(Interpreter.interpretLine(in.readLine()));
+		String text = in.readLine();
+		while(text != null){
+			out.println(interpretLine(text));
+			text = in.readLine();
+		}
+		
+		/*
+		out.println(Interpreter.interpretLine(in.readLine())); // Class start
+		out.println(Interpreter.interpretLine(in.readLine())); // Main method full
+		out.println(Interpreter.interpretLine(in.readLine())); // Method start
+		out.println(Interpreter.interpretLine(in.readLine())); // Variable Declaration
+		out.println(Interpreter.interpretLine(in.readLine())); // Printing
+		out.println(Interpreter.interpretLine(in.readLine())); // Method end
+		out.println(Interpreter.interpretLine(in.readLine())); // Class end
+		*/
 		
 		out.close(); in.close();
 
