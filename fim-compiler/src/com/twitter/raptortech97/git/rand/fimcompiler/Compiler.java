@@ -16,6 +16,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.tools.*;
 
 public class Compiler {
@@ -35,28 +38,28 @@ public class Compiler {
 		File fileOut = new File(fileIn.getAbsolutePath().replace(".fim", ".java"));
 		BufferedReader in = new BufferedReader(new FileReader(fileIn));
 		PrintStream out = new PrintStream(new FileOutputStream(fileOut));
+		
+		List<String> lines = (List<String>) new ArrayList<String>();
+		String text = in.readLine();
+		while(text != null){
+			lines.add(text);
+			text = in.readLine();
+		}
+		
+		for(int i=0; i<lines.size(); i++){
+			String str = lines.get(i);
+			str = str.replace("(", "/*");
+			str = str.replace(")", "*//");
+			lines.set(i, str);
+		}
 
 		out.println("import com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia;");
 		out.println("// AUTO-GENERATED CLASS");
 
-		String text = in.readLine();
-		while(text != null){
-			out.println(interpretLine(text));
-			text = in.readLine();
-		}
-		
-		/*
-		out.println(Interpreter.interpretLine(in.readLine())); // Class start
-		out.println(Interpreter.interpretLine(in.readLine())); // Main method full
-		out.println(Interpreter.interpretLine(in.readLine())); // Method start
-		out.println(Interpreter.interpretLine(in.readLine())); // Variable Declaration
-		out.println(Interpreter.interpretLine(in.readLine())); // Printing
-		out.println(Interpreter.interpretLine(in.readLine())); // Method end
-		out.println(Interpreter.interpretLine(in.readLine())); // Class end
-		*/
+		for(String str : lines)
+			out.println(interpret(str));
 		
 		out.close(); in.close();
-
 		Class cls2 = compileLoad(fileOut).loadClass("HelloWorld");
 		runClassMain(cls2);
 	}
@@ -87,7 +90,7 @@ public class Compiler {
 		}
 	}
 
-	private static String interpretLine(String text){
+	private static String interpret(String text){
 		return Interpreter.interpretLine(text);
 	}
 }
