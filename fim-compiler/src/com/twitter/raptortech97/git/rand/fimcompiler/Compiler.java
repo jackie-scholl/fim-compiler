@@ -18,16 +18,18 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.tools.*;
 
 public class Compiler {
 	public static final File CELESTIA = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//src//com//twitter"+
 			"//raptortech97//git//rand//fimcompiler//Princess_Celestia.java");
-	private static String NEWLINE = System.getProperty("line.separator");
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException,
 	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+		
 		File fileIn = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
 		act(fileIn);
 	}
@@ -62,6 +64,7 @@ public class Compiler {
 		}
 		
 		out.close(); in.close();
+		@SuppressWarnings("rawtypes")
 		Class cls2 = compileLoad(fileOut).loadClass("HelloWorld");
 		runClassMain(cls2);
 	}
@@ -81,10 +84,12 @@ public class Compiler {
 		return loader;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private static void runClassMain(Class cls) throws InvocationTargetException, IllegalAccessException{
 		String className = cls.getName();
 		String[] strs = new String[1];
 		try {
+			@SuppressWarnings("unchecked")
 			Method m = cls.getMethod("main", strs.getClass());
 			m.invoke(null, (Object[]) strs);
 		} catch (NoSuchMethodException e) {

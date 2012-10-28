@@ -1,14 +1,33 @@
 import com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia;
 // AUTO-GENERATED CLASS
 public class HelloWorld extends Princess_Celestia{
-public static void main(String[] args){ an_Important_Lesson_about_Friendship(); }
-public static void an_Important_Lesson_about_Friendship(){
+public static void main(String[] args){ important_lesson_about_friendship(); }
+public static void important_lesson_about_friendship(){
 
- String Spike="Hello World!";
+double Spike=67.428;
 System.out.println(Spike);
 
- double Applejack=67.428;
-System.out.println(Applejack);
+double Rarity=Spike;
+System.out.println(Rarity);
+
+Rarity/= 3;
+System.out.println(Rarity);
+
+Rarity+= 2;
+System.out.println(Rarity);
+
+Rarity*= Spike;
+System.out.println(Rarity);
+
+}
+
+
+public static double sum_of_everything_from_one_to_100(){
+
+double sum=0;
+double current_number=0;
+
+return sum;
 
 }
 

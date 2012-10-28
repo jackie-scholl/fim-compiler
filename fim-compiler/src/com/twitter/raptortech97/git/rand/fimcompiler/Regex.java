@@ -28,21 +28,22 @@ public class Regex {
 	}
 	
 	public static String normalizeVarName(String str){
-		Matcher classMatcher = Pattern.compile(getVarRegex("A")).matcher(str);
-		if(!classMatcher.matches())
+		Matcher matcher = Pattern.compile(getVarRegex("A")).matcher(str);
+		if(!matcher.matches())
 			System.err.println("Error. Bad variable name.");
 
+		str = matcher.group("XA");
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in variable names.
 		return str;
 	}
 
 	public static String normalizeType(String str){
 		if(str.startsWith("a "))
-			str = str.substring(1);
-		else if(str.startsWith("an "))
 			str = str.substring(2);
-		else if(str.startsWith("the "))
+		else if(str.startsWith("an "))
 			str = str.substring(3);
+		else if(str.startsWith("the "))
+			str = str.substring(4);
 		str = str.replace("logical", "boolean");
 		str = str.replace("argument", "boolean");
 		str = str.replace("number", "double");
@@ -71,8 +72,36 @@ public class Regex {
 		return null;
 	}
 	
+	public static String normalizeValue(String str){
+		Matcher matcher = Pattern.compile(getLitRegex("A")).matcher(str);
+		if(matcher.matches())
+			return normalizeLiteral(str);
+		
+		matcher = Pattern.compile(getVarRegex("A")).matcher(str);
+		if(matcher.matches())
+			return normalizeVarName(str);
+		return null;
+	}
+	
+	public static String normalizeOperation(String str){
+		String pattern = getOpRegex("B");
+		Matcher matcher = Pattern.compile(pattern).matcher(str);
+		matcher.find();
+		String operation = matcher.group("YB");
+		String s = "?";
+		if(operation.equals("increased"))
+			s = "+";
+		else if(operation.equals("decreased"))
+			s = "-";
+		else if(operation.equals("multiplied"))
+			s = "*";
+		else if(operation.equals("divided"))
+			s = "/";
+		return s+"= "+normalizeValue(matcher.group("BXOp1"));
+	}
+	
 	public static String getVarRegex(String str){
-		return "(?<"+str+">(a |an |the )?[A-Z][\\w ']*)";
+		return "(?<"+str+">(a |an |the )??_(?<X"+str+">[\\w ']+)_)";
 	}
 	public static String getTypeRegex(String str){
 		return "(?<"+str+">(a |the |an )*((logical)|(argument)|(number)|(name)|(character)|(letter))(s|es)*)";
@@ -82,5 +111,12 @@ public class Regex {
 	}
 	public static String getLitRegex(String str){
 		return "(?<"+str+">"+LITERAL_NUMBER_REGEX+"|"+LITERAL_STRING_REGEX+")";
+	}
+	public static String getValRegex(String str){
+		return "(?<"+str+">"+"("+getLitRegex(str+"XVal1")+"|"+getVarRegex(str+"XVal2")+"))";
+	}
+	public static String getOpRegex(String str){
+		return "(?<"+str+">(?<Y"+str+">((increased)|(decreased)|(multiplied)|(divided))) by "+getValRegex(str+"XOp1")+")";
+		//return "(?<op>increased by 2)";
 	}
 }

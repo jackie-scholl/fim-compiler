@@ -21,8 +21,8 @@ public class Interpreter {
 		
 		String[] results = new String[]{interpretComment(text), interpretClassDeclaration(text), interpretEndClass(text),
 				interpretMainMethod(text), interpretMethodStart(text), interpretMethodStartReturn(text),
-				interpretMethodEnd(text), interpretVarDecType(text), interpretVarDecLit(text), interpretVarDecVar(text),
-				interpretPrint(text)};
+				interpretMethodEnd(text), interpretVarDecType(text), interpretVarDecVal(text), interpretVarReAssign(text),
+				interpretVarMod(text), interpretPrint(text), interpretReturn(text)};
 		
 		for(String res : results)
 			if(res != null)
@@ -73,10 +73,10 @@ public class Interpreter {
 	}
 	
 	private static String interpretMethodStartReturn(String text){
-		String pattern = "I learned "+Regex.getVarRegex("methodName")+" with "+Regex.getTypeRegex("returnType")+Regex.PUNC;
+		String pattern = "I learned "+Regex.getVarRegex("methodName")+" to get "+Regex.getTypeRegex("returnType")+Regex.PUNC;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
-			return "public static "+Regex.normalizeType(matcher.group("returnType"))+
+			return "public static "+Regex.normalizeType(matcher.group("returnType"))+" "+
 					Regex.normalizeVarName(matcher.group("methodName"))+"(){";
 		return null;
 	}
@@ -90,42 +90,89 @@ public class Interpreter {
 	}	
 
 	private static String interpretVarDecType(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" is "+Regex.getTypeRegex("typeName")+
-				Regex.PUNC;
+		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (was|were) "+
+				Regex.getTypeRegex("typeName")+Regex.PUNC;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+";";
 		return null;
 	}
 	
-	private static String interpretVarDecLit(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" is "+Regex.getTypeRegex("typeName")+
-				" "+Regex.getLitRegex("literal")+Regex.PUNC;
+	private static String interpretVarDecVal(String text){
+		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (is|are|was|were) "+
+				Regex.getTypeRegex("typeName")+" "+Regex.getValRegex("val")+Regex.PUNC;
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
-			return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+"="+
-						Regex.normalizeLiteral(matcher.group("literal"))+";";
+			return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+
+					"="+Regex.normalizeValue(matcher.group("val"))+";";
 		return null;
 	}
 	
-	private static String interpretVarDecVar(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" is "+Regex.getTypeRegex("typeName")+
-				" "+Regex.getVarRegex("var2")+Regex.PUNC;
+	private static String interpretVarReAssign(String text){
+		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (then)? became "+
+				Regex.getValRegex("val")+Regex.PUNC;
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
-			return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+"="+
-						Regex.normalizeLiteral(matcher.group("var2"))+";";
+			return Regex.normalizeVarName(matcher.group("varName"))+"="+Regex.normalizeValue(matcher.group("val"))+";";
 		return null;
 	}
+	
+	private static String interpretVarMod(String text){
+		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (was)? (then)? "+
+				Regex.getOpRegex("op")+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return Regex.normalizeVarName(matcher.group("varName"))+Regex.normalizeOperation(matcher.group("op"))+";";
+		return null;
+	}
+	
 	
 	private static String interpretPrint(String text){
-		String pattern = "I (said|wrote|sang|spoke|proclaimed) "+Regex.getVarRegex("varName")+Regex.PUNC;
+		String pattern = "I (said|wrote|sang|spoke|proclaimed|thought) "+Regex.getVarRegex("varName")+Regex.PUNC;
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return "System.out.println("+Regex.normalizeVarName(matcher.group("varName"))+");";
 		return null;
 	}
+	
+	private static String interpretReturn(String text){
+		String pattern = "Then (I|you||he|she|we|you'll|they) (got|get) "+Regex.getVarRegex("varName")+Regex.PUNC;
+
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "return "+Regex.normalizeVarName(matcher.group("varName"))+";";
+		return null;
+	}
 }
+
+/*
+String pattern = "(Did you know that )?"+Regex.getVarRegex("varName")+" ((is|are|was|were) now)|"+
+		"((now)? (becomes/became))"+" "+Regex.getValRegex("var2")+Regex.PUNC;
+ */
+
+/*
+private static String interpretVarDecLit(String text){
+	String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (is|are|was|were) "+
+			Regex.getTypeRegex("typeName")+" "+Regex.getLitRegex("literal")+Regex.PUNC;
+
+	Matcher matcher = Pattern.compile(pattern).matcher(text);
+	if(matcher.matches())
+		return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+
+				"="+Regex.normalizeLiteral(matcher.group("literal"))+";";
+	return null;
+}
+
+private static String interpretVarDecVar(String text){
+	String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (is|are|was|were) "+
+			Regex.getTypeRegex("typeName")+" "+Regex.getVarRegex("var2")+Regex.PUNC;
+
+	Matcher matcher = Pattern.compile(pattern).matcher(text);
+	if(matcher.matches())
+		return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+
+				"="+Regex.normalizeLiteral(matcher.group("var2"))+";";
+	return null;
+}
+*/
