@@ -57,6 +57,7 @@ public class Regex {
 
 	private static String LITERAL_NUMBER_REGEX = "\\d+(\\.\\d+)?";
 	private static String LITERAL_STRING_REGEX = "(?<quoteMark>"+QUOTE_MARK+")(?<quote>.+)\\k<quoteMark>";
+	private static String LITERAL_BOOL_REGEX = "((true)|(false)|(correct)|(incorrect))";
 	public static String normalizeLiteral(String str){
 		Matcher matcher = Pattern.compile(getLitRegex("A")).matcher(str);
 		if(!matcher.matches())
@@ -69,6 +70,14 @@ public class Regex {
 		matcher = Pattern.compile(LITERAL_STRING_REGEX).matcher(str);
 		if(matcher.matches())
 			return "\""+matcher.group("quote")+"\"";
+		
+		matcher = Pattern.compile(LITERAL_BOOL_REGEX).matcher(str);
+		if(matcher.matches()){
+			if(str.equals("true") || str.equals("correct"))
+				return "true";
+			else if(str.equals("false") || str.equals("incorrect"))
+				return "false";
+		}
 		return null;
 	}
 	
@@ -90,14 +99,34 @@ public class Regex {
 		String operation = matcher.group("YB");
 		String s = "?";
 		if(operation.equals("increased"))
-			s = "+";
+			s = " += ";
 		else if(operation.equals("decreased"))
-			s = "-";
+			s = " -= ";
 		else if(operation.equals("multiplied"))
-			s = "*";
+			s = " *= ";
 		else if(operation.equals("divided"))
-			s = "/";
-		return s+"= "+normalizeValue(matcher.group("BXOp1"));
+			s = " /= ";
+		else if(operation.equals("anded"))
+			s = " &= ";
+		else if(operation.equals("ored"))
+			s = " |= ";
+		else if(operation.equals("xored"))
+			s = " ^= ";
+		return s+normalizeValue(matcher.group("BXOp1"));
+	}
+	
+	public static String normalizeComparator(String str){
+		String pattern = getCompRegex("A");
+		Matcher matcher = Pattern.compile(pattern).matcher(str);
+		matcher.find();
+		String comp = matcher.group("YA");
+		String s = "?";
+		if(comp.equals("is"))
+			s = "==";
+		else if (comp.equals("is not"))
+			s = "!=";
+		
+		return s;
 	}
 	
 	public static String getVarRegex(String str){
@@ -110,13 +139,15 @@ public class Regex {
 		return "(?<"+str+">[A-Z]+[\\w ]*)";
 	}
 	public static String getLitRegex(String str){
-		return "(?<"+str+">"+LITERAL_NUMBER_REGEX+"|"+LITERAL_STRING_REGEX+")";
+		return "(?<"+str+">"+LITERAL_NUMBER_REGEX+"|"+LITERAL_STRING_REGEX+"|"+LITERAL_BOOL_REGEX+")";
 	}
 	public static String getValRegex(String str){
 		return "(?<"+str+">"+"("+getLitRegex(str+"XVal1")+"|"+getVarRegex(str+"XVal2")+"))";
 	}
 	public static String getOpRegex(String str){
-		return "(?<"+str+">(?<Y"+str+">((increased)|(decreased)|(multiplied)|(divided))) by "+getValRegex(str+"XOp1")+")";
-		//return "(?<op>increased by 2)";
+		return "(?<"+str+">((?<Y"+str+">((increased)|(decreased)|(multiplied)|(divided)|(anded)|(ored)|(xored))) by )"+getValRegex(str+"XOp1")+")";
+	}
+	public static String getCompRegex(String str){
+		return "(?<"+str+">"+getValRegex(str+"XComp1")+" (?<Y"+str+">is( not)?)"+getValRegex(str+"XComp2")+")";
 	}
 }

@@ -19,10 +19,13 @@ public class Interpreter {
 		if(text == null || text.equals(""))
 			return "";
 		
-		String[] results = new String[]{interpretComment(text), interpretClassDeclaration(text), interpretEndClass(text),
-				interpretMainMethod(text), interpretMethodStart(text), interpretMethodStartReturn(text),
-				interpretMethodEnd(text), interpretVarDecType(text), interpretVarDecVal(text), interpretVarReAssign(text),
-				interpretVarMod(text), interpretPrint(text), interpretReturn(text)};
+		String[] results = new String[]{interpretComment(text),
+				interpretClassDeclaration(text), interpretEndClass(text),
+				interpretMainMethod(text), interpretMethodStart(text), interpretMethodStartReturn(text), interpretMethodEnd(text),
+				interpretMethodCall(text), 
+				interpretVarDecType(text), interpretVarDecVal(text), interpretVarReAssign(text), interpretVarMod(text),
+				interpretIfStart(text), interpretElseIf(text), interpretElse(text), interpretIfEnd(text),
+				interpretPrint(text), interpretReturn(text)};
 		
 		for(String res : results)
 			if(res != null)
@@ -128,6 +131,46 @@ public class Interpreter {
 		return null;
 	}
 	
+	private static String interpretMethodCall(String text){
+		String pattern = "I did "+Regex.getVarRegex("methodName")+" and gave the result to "+
+				Regex.getVarRegex("varName")+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return Regex.normalizeVarName(matcher.group("varName"))+"="+Regex.normalizeVarName(matcher.group("methodName"))+"();";
+		return null;
+	}
+	
+	private static String interpretIfStart(String text){
+		String pattern = "(If)|(When) "+Regex.getValRegex("bool")+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "if("+Regex.normalizeValue(matcher.group("bool"))+"){";
+		return null;
+	}
+	
+	private static String interpretElse(String text){
+		String pattern = "(Otherwise)|(Or else)"+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "else {";
+		return null;
+	}
+	
+	private static String interpretElseIf(String text){
+		String pattern = "(Otherwise)|(Or else) (If)|(When) "+Regex.getValRegex("bool")+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "else if("+Regex.normalizeValue("bool")+"){";
+		return null;
+	}
+	
+	private static String interpretIfEnd(String text){
+		String pattern = "That's what I ((would do)|(did))"+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "}";
+		return null;
+	}
 	
 	private static String interpretPrint(String text){
 		String pattern = "I (said|wrote|sang|spoke|proclaimed|thought) "+Regex.getVarRegex("varName")+Regex.PUNC;
@@ -147,32 +190,3 @@ public class Interpreter {
 		return null;
 	}
 }
-
-/*
-String pattern = "(Did you know that )?"+Regex.getVarRegex("varName")+" ((is|are|was|were) now)|"+
-		"((now)? (becomes/became))"+" "+Regex.getValRegex("var2")+Regex.PUNC;
- */
-
-/*
-private static String interpretVarDecLit(String text){
-	String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (is|are|was|were) "+
-			Regex.getTypeRegex("typeName")+" "+Regex.getLitRegex("literal")+Regex.PUNC;
-
-	Matcher matcher = Pattern.compile(pattern).matcher(text);
-	if(matcher.matches())
-		return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+
-				"="+Regex.normalizeLiteral(matcher.group("literal"))+";";
-	return null;
-}
-
-private static String interpretVarDecVar(String text){
-	String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (is|are|was|were) "+
-			Regex.getTypeRegex("typeName")+" "+Regex.getVarRegex("var2")+Regex.PUNC;
-
-	Matcher matcher = Pattern.compile(pattern).matcher(text);
-	if(matcher.matches())
-		return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVarName(matcher.group("varName"))+
-				"="+Regex.normalizeLiteral(matcher.group("var2"))+";";
-	return null;
-}
-*/
