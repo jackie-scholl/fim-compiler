@@ -39,6 +39,9 @@ public class Compiler {
 		BufferedReader in = new BufferedReader(new FileReader(fileIn));
 		PrintStream out = new PrintStream(new FileOutputStream(fileOut));
 		
+		out.println("import com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia;");
+		out.println("// AUTO-GENERATED CLASS");
+		
 		List<String> lines = (List<String>) new ArrayList<String>();
 		String text = in.readLine();
 		while(text != null){
@@ -46,18 +49,17 @@ public class Compiler {
 			text = in.readLine();
 		}
 		
+		boolean comment = false;
 		for(int i=0; i<lines.size(); i++){
 			String str = lines.get(i);
-			str = str.replace("(", "/*");
-			str = str.replace(")", "*//");
-			lines.set(i, str);
+			
+			if(str.startsWith(")"))
+				comment = false;
+			else if (str.startsWith("("))
+				comment = true;
+			else if (!comment)
+				out.println(interpret(str));
 		}
-
-		out.println("import com.twitter.raptortech97.git.rand.fimcompiler.Princess_Celestia;");
-		out.println("// AUTO-GENERATED CLASS");
-
-		for(String str : lines)
-			out.println(interpret(str));
 		
 		out.close(); in.close();
 		Class cls2 = compileLoad(fileOut).loadClass("HelloWorld");

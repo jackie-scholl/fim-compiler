@@ -1,3 +1,14 @@
+/*
+ * Author: Jackson Scholl 
+ *   Twitter: @raptortech97
+ *   Email:   shades97@gmail.com
+ *   Google+: https://plus.google.com/113116905639811214312/
+ *   GitHub:  raptortech-js
+ * 
+ * A FiM++ compiler/interpreter written in Java. Compiles the FiM++ to Java as an intermediary.
+ * 
+ */
+
 package com.twitter.raptortech97.git.rand.fimcompiler;
 
 import java.util.regex.Matcher;
@@ -26,6 +37,12 @@ public class Regex {
 	}
 
 	public static String normalizeType(String str){
+		if(str.startsWith("a "))
+			str = str.substring(1);
+		else if(str.startsWith("an "))
+			str = str.substring(2);
+		else if(str.startsWith("the "))
+			str = str.substring(3);
 		str = str.replace("logical", "boolean");
 		str = str.replace("argument", "boolean");
 		str = str.replace("number", "double");
@@ -55,35 +72,15 @@ public class Regex {
 	}
 	
 	public static String getVarRegex(String str){
-		//String VAR_REGEX = "[\\w ']+";
-		return "(?<"+str+">[\\w ']+)";
+		return "(?<"+str+">(a |an |the )?[A-Z][\\w ']*)";
 	}
 	public static String getTypeRegex(String str){
-		//String TYPE_REGEX = "((logical)|(argument)|(number)|(name)|(character)|(letter))(s|es)*";
-		return "(?<"+str+">((logical)|(argument)|(number)|(name)|(character)|(letter))(s|es)*)";
+		return "(?<"+str+">(a |the |an )*((logical)|(argument)|(number)|(name)|(character)|(letter))(s|es)*)";
 	}
 	public static String getClassRegex(String str){
-		//String CLASS_REGEX = "(([A-Z]+[\\w]*)+( [A-Z]+[\\w]*)*)";
 		return "(?<"+str+">[A-Z]+[\\w ]*)";
 	}
 	public static String getLitRegex(String str){
-		//String LITERAL_REGEX = "("+LITERAL_NUMBER_REGEX+"|"+LITERAL_STRING_REGEX+")";
 		return "(?<"+str+">"+LITERAL_NUMBER_REGEX+"|"+LITERAL_STRING_REGEX+")";
 	}
 }
-
-/*
-private static String normalizeLiteralNum(String str){
-	Matcher matcher = Pattern.compile(LITERAL_NUMBER_REGEX).matcher(str);
-	if(!matcher.matches())
-		return null;
-	return str;
-}
-
-private static String normalizeLiteralString(String str){
-	Matcher matcher = Pattern.compile(LITERAL_STRING_REGEX).matcher(str);
-	if(!matcher.matches())
-		return null;
-	return "\""+matcher.group("quote")+"\"";
-}
-*/
