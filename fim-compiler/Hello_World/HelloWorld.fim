@@ -1,4 +1,15 @@
 Dear Princess Celestia: HelloWorld
+(
+This test program shows off the capabilities of the compiler and serves to test it. Currently, it should (and does) print:
+67.428
+22.476
+24.476
+1650.367728
+true
+true
+5.4
+true
+)
 Today I learned an _important lesson about friendship_.
 I learned an _important lesson about friendship_.
 
@@ -18,28 +29,24 @@ I sang _Rarity_.
 
 Did you know that _X_ was a number?
 I did _sum of everything from one to 100_ and gave the result to _X_.
+I proclaimed _X_.
 
 That's all about an _important lesson about friendship_.
 
 
 I learned the _sum of everything from one to 100_ to get a number.
-
 Did you know that the _sum_ was the number 0?
-Did you know that the _current number_ was the number 0?
+Did you know that the _current number_ was the number 1?
+Did you know that the _test_ was the argument false?
+Did you know that _test_ then became whether _current number_ was not greater than 100?
 
-Did you know that _Twily_ was the logical true?
-Did you know that _Twily_ was then anded by true?
-I wrote _Twily_.
-Did you know that _Twily_ was then ored by false?
-I wrote _Twily_.
-
-When _Twily_,
-Did you know that _sum_ was then increased by 5.4?
-I said _sum_.
+While _test_:
+Did you know that _sum_ was then increased by _current number_?
+Did you know that _current number_ was then increased by 1?
+Did you know that _test_ then became whether _current number_ was not greater than 100?
 That's what I did.
 
 Then you get the _sum_!
-
 That's all about the _sum of everything from one to 100_.
 
 P.S. This is a comment.

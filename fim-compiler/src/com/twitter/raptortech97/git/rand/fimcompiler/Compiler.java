@@ -18,6 +18,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.tools.*;
 
 public class Compiler {
@@ -68,10 +71,8 @@ public class Compiler {
 
 	private static ClassLoader compileLoad(File source) throws ClassNotFoundException, IOException, IllegalAccessException,
 				InvocationTargetException{
-
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		compiler.run(null, null, null, source.getAbsolutePath());
-		System.out.println("Finished compiling.");
 
 		String[] dirs = new String[]{source.getParent(), CELESTIA.getParent()};
 		URL[] urls = new URL[dirs.length];

@@ -21,10 +21,11 @@ public class Interpreter {
 		
 		String[] results = new String[]{interpretComment(text),
 				interpretClassDeclaration(text), interpretEndClass(text),
-				interpretMainMethod(text), interpretMethodStart(text), interpretMethodStartReturn(text), interpretMethodEnd(text),
-				interpretMethodCall(text), 
+				interpretMainMethod(text), interpretMethodStart(text), interpretMethodStartReturn(text),
+						interpretMethodEnd(text), interpretMethodCall(text), 
 				interpretVarDecType(text), interpretVarDecVal(text), interpretVarReAssign(text), interpretVarMod(text),
-				interpretIfStart(text), interpretElseIf(text), interpretElse(text), interpretIfEnd(text),
+								interpretVarModComp(text),
+				interpretIfStart(text), interpretWhileStart(text), interpretElseIf(text), interpretElse(text), interpretIfEnd(text),
 				interpretPrint(text), interpretReturn(text)};
 		
 		for(String res : results)
@@ -85,7 +86,7 @@ public class Interpreter {
 	}
 	
 	private static String interpretMethodEnd(String text){
-		String pattern = "That's( all)? about "+Regex.getVarRegex("methodName")+Regex.PUNC;
+		String pattern = "That's( all)? about (a |an |the )?"+Regex.getVarRegex("methodName")+Regex.PUNC;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return "}";
@@ -118,7 +119,7 @@ public class Interpreter {
 
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
-			return Regex.normalizeVarName(matcher.group("varName"))+"="+Regex.normalizeValue(matcher.group("val"))+";";
+			return Regex.normalizeVarName(matcher.group("varName"))+" = "+Regex.normalizeValue(matcher.group("val"))+";";
 		return null;
 	}
 	
@@ -128,6 +129,17 @@ public class Interpreter {
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return Regex.normalizeVarName(matcher.group("varName"))+Regex.normalizeOperation(matcher.group("op"))+";";
+		return null;
+	}
+	
+	private static String interpretVarModComp(String text){
+		String pattern = "Did you know that "+Regex.getVarRegex("varName")+"( then)? became whether "+
+				Regex.getValRegex("val1")+" "+Regex.getCompRegex("comp")+" "+Regex.getValRegex("val2")+Regex.PUNC;
+		
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return Regex.normalizeVarName(matcher.group("varName"))+" = ("+Regex.normalizeValue(matcher.group("val1"))+
+					Regex.normalizeComparator(matcher.group("comp"))+Regex.normalizeValue(matcher.group("val2"))+");";
 		return null;
 	}
 	
@@ -141,10 +153,18 @@ public class Interpreter {
 	}
 	
 	private static String interpretIfStart(String text){
-		String pattern = "(If)|(When) "+Regex.getValRegex("bool")+Regex.PUNC;
+		String pattern = "((If)|(When)) "+Regex.getValRegex("bool")+"( then)?"+Regex.PUNC;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return "if("+Regex.normalizeValue(matcher.group("bool"))+"){";
+		return null;
+	}
+	
+	private static String interpretWhileStart(String text){
+		String pattern = "(As long as)|(While) "+Regex.getValRegex("bool")+Regex.PUNC;
+		Matcher matcher = Pattern.compile(pattern).matcher(text);
+		if(matcher.matches())
+			return "while("+Regex.normalizeValue(matcher.group("bool"))+"){";
 		return null;
 	}
 	
@@ -157,7 +177,7 @@ public class Interpreter {
 	}
 	
 	private static String interpretElseIf(String text){
-		String pattern = "(Otherwise)|(Or else) (If)|(When) "+Regex.getValRegex("bool")+Regex.PUNC;
+		String pattern = "(Otherwise)|(Or else) (If)|(When) "+Regex.getValRegex("bool")+"( then)?"+Regex.PUNC;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return "else if("+Regex.normalizeValue("bool")+"){";
@@ -165,7 +185,7 @@ public class Interpreter {
 	}
 	
 	private static String interpretIfEnd(String text){
-		String pattern = "That's what I ((would do)|(did))"+Regex.PUNC;
+		String pattern = "That's what I did"+Regex.PUNC;
 		Matcher matcher = Pattern.compile(pattern).matcher(text);
 		if(matcher.matches())
 			return "}";

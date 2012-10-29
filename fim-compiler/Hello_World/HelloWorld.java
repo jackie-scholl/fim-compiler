@@ -20,28 +20,24 @@ System.out.println(Rarity);
 
 double X;
 X=sum_of_everything_from_one_to_100();
+System.out.println(X);
 
 }
 
 
 public static double sum_of_everything_from_one_to_100(){
-
 double sum=0;
-double current_number=0;
+double current_number=1;
+boolean test=false;
+test = (current_number<=100);
 
-boolean Twily=true;
-Twily &= true;
-System.out.println(Twily);
-Twily |= false;
-System.out.println(Twily);
-
-if(Twily){
-sum += 5.4;
-System.out.println(sum);
+while(test){
+sum += current_number;
+current_number += 1;
+test = (current_number<=100);
 }
 
 return sum;
-
 }
 
 // This is a comment.
