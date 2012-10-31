@@ -11,31 +11,62 @@
 
 package com.twitter.raptortech97.git.rand.fimcompiler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 public class Regex {
 	public static String QUOTE_MARK = "[\\u0022\\u0027\\u0029\\u2018\\u2019\\u201C\\u201D]";
 	public static String APOSTROPHE = "[\\u0027\\u2019\\u02BC\\u2019]";
 	public static String COMMA = "(\\u002C|\\uFE10|\\uFE11|\\uFE50|\\uFE51|\\uFF0C)";
 	public static String PUNC = "[,:\\?\\.\\!"+COMMA+"]";
-	private static int STR_DEPTH = 5;
-
-	public static String normalizeClassName(String str){
-		Matcher matcher = Pattern.compile(getClassRegex("A")).matcher(str);
-		if(!matcher.matches())
-			System.err.println("Error. Bad class name.");
-
+	public static String PRONOUN = "((I)|(you)|(he)|(she)|(we)|(ya'll)|(they))";
+	private static int STR_DEPTH = 10; // Determines the maximum allowed number of strings to be concatenated at once. Higher values run slower.
+	
+	public static Element CLASS;
+	public static Element VAR;
+	public static Element TYPE;
+	public static Element LIT;
+	public static Element VAL;
+	public static Element OP;
+	public static Element COMP;
+	public static Element STRING;
+	public static Element METHOD_CALL;
+	
+	private static Element STRING1;
+	private static Element VAL1;
+	
+	public static void setup(){
+		try {
+			CLASS  = new NormalElement("Class", "normalizeClassName",  "getClassRegex");
+			VAR    = new NormalElement("var", "normalizeVariable",   "getVarRegex");
+			TYPE   = new NormalElement("type", "normalizeType",       "getTypeRegex");
+			OP     = new NormalElement("op", "normalizeOperation",  "getOpRegex");
+			COMP   = new NormalElement("comp", "normalizeComparator", "getCompRegex");
+			STRING = new NormalElement("string", "normalizeString3",    "getString3Regex");
+			METHOD_CALL = new NormalElement("method", "normalizeMethodCall", "getMethodCallRegex");
+			Element LIT_NUM = new NormalElement("lit_num", "normalizeLiteralNumber", "getLitNumRegex");
+			Element LIT_STRING = new NormalElement("lit_string", "normalizeLiteralString", "getLitStringRegex");
+			Element LIT_BOOL = new NormalElement("lit_bool", "normalizeLiteralBoolean", "getLitBoolRegex");
+			LIT = new OrElement("lit", LIT_NUM, LIT_STRING, LIT_BOOL);
+			VAL1   = new OrElement("val1", LIT, VAR, STRING, METHOD_CALL);
+			VAL    = new OrElement("val", VAL1, COMP);
+			STRING1 = new OrElement("string1", LIT_STRING, VAR);
+		} catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static String getClassRegex(String str){
+		return "(?<"+str+">[A-Z]+[\\w ]*)";
+	}
+	public static String normalizeClassName(String str, Matcher matcher, String head){
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in class names.
 		return str;
 	}
 
-	public static String normalizeVariable(String str){
-		String head = "normalizeVariable";
-		Matcher matcher = Pattern.compile(getVarRegex(head)).matcher(str);
-		if(!matcher.matches())
-			return null;
-
+	public static String getVarRegex(String str){
+		return "(?<"+str+">(a |an |the )??_(?<"+str+"Name1>[\\w ']+?)_)";
+	}
+	public static String normalizeVariable(String str, Matcher matcher, String head){
 		str = matcher.group(head+"Name1");
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in variable names.
 		str = str.replace("'", "u0027");
@@ -43,7 +74,10 @@ public class Regex {
 		return str;
 	}
 
-	public static String normalizeType(String str){
+	public static String getTypeRegex(String str){
+		return "(?<"+str+">(a |the |an )*((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))(s|es)*)";
+	}
+	public static String normalizeType(String str, Matcher matcher, String head){
 		if(str.startsWith("a "))
 			str = str.substring(2);
 		else if(str.startsWith("an "))
@@ -56,73 +90,59 @@ public class Regex {
 		str = str.replace("name", "String");
 		str = str.replace("character", "char");
 		str = str.replace("letter", "char");
+		str = str.replace("nothing", "void");
 		str = str.replace("es", "[]");
 		str = str.replace("s", "[]");
 		return str;
 	}
-
-	private static String LITERAL_NUMBER_REGEX = "\\d+(\\.\\d+)?";
-	private static String LITERAL_BOOL_REGEX = "((true)|(false)|(correct)|(incorrect))";
-	public static String normalizeLiteral(String str){
-		String head = "normalizeLiteral";
-		Matcher matcher = Pattern.compile(getLitRegex(head)).matcher(str);
-		if(!matcher.matches())
-			System.err.println("Error. Bad literal.");
-
-		matcher = Pattern.compile(LITERAL_NUMBER_REGEX).matcher(str);
-		if(matcher.matches())
-			return str;
-
-		matcher = Pattern.compile(getLitStringRegex(head)).matcher(str);
-		if(matcher.matches())
-			return "\""+matcher.group(head+"XLitstringQuote1")+"\"";
-
-		matcher = Pattern.compile(LITERAL_BOOL_REGEX).matcher(str);
-		if(matcher.matches()){
-			if(str.equals("true") || str.equals("correct"))
-				return "true";
-			else if(str.equals("false") || str.equals("incorrect"))
-				return "false";
-		}
-		return null;
-	}
-
-	public static String normalizeValue(String str){
-		String head = "normalizeValue";
-		Matcher matcher = Pattern.compile(getLitRegex(head)).matcher(str);
-		if(matcher.matches())
-			return normalizeLiteral(str);
-
-		matcher = Pattern.compile(getVarRegex(head)).matcher(str);
-		if(matcher.matches())
-			return normalizeVariable(str);
-		
-		matcher = Pattern.compile(getString3Regex(head)).matcher(str);
-		if(matcher.matches())
-			return normalizeString3(str);
-		return null;
+	
+	public static String getLitBoolRegex(String str){
+		return "(?<"+str+">((true)|(false)|(correct)|(incorrect)))";
 	}
 	
-	public static String normalizeValue2(String str){
-		String head = "normalizeValue2";
-		Matcher matcher;
-		
-		matcher = Pattern.compile(getValRegex(head)).matcher(str);
-		if(matcher.matches())
-			return normalizeValue(str);
-
-		matcher = Pattern.compile(getCompRegex(head)).matcher(str);
-		if(matcher.matches())
-			return normalizeComparator(str);
-		
+	public static String normalizeLiteralBoolean(String str, Matcher matcher, String head){
+		if(str.equals("true") || str.equals("correct"))
+			return "true";
+		else if(str.equals("false") || str.equals("incorrect"))
+			return "false";
 		return null;
 	}
+	public static String normalizeLiteralString(String str, Matcher matcher, String head){
+		return "\""+matcher.group(head+"XLitstringQuote1")+"\"";
+	}	
+	public static String getLitStringRegex(String str){
+		String head = str+"XLitstring";
+		return "(?<"+head+"Qm1>"+QUOTE_MARK+")(?<"+head+"Quote1>(?s).+?)\\k<"+head+"Qm1>";
+	}
+
+	public static String normalizeLiteralNumber(String str, Matcher matcher, String head){
+		return matcher.group(head);
+	}
+	public static String getLitNumRegex(String str){
+		return "(?<"+str+">\\d+(\\.\\d+)?)";
+	}
 	
-	public static String normalizeOperation(String str){
-		String head = "normalizeOperation";
-		String pattern = getOpRegex(head);
-		Matcher matcher = Pattern.compile(pattern).matcher(str);
-		matcher.find();
+	public static String getLitNothingRegex(String str){
+		return "(?<"+str+">nothing)";
+	}
+	public static String normalizeLiteralNothing(String str, Matcher matcher, String head){
+		return "void";
+	}
+	
+	public static String getMethodCallRegex(String str){
+		String head = str+"XMethodcall";
+		return "(?<"+str+">the result of "+VAR.get(head+"Method1")+")";
+	}
+	public static String normalizeMethodCall(String str, Matcher matcher, String head){
+		return VAR.norm(matcher.group(head+"XMethodcallMethod1"))+"()";
+	}
+
+	public static String getOpRegex(String str){
+		String head = str+"XOp";
+		return "(?<"+str+">((?<"+head+"Op1>((increas)|(decreas)|(multipli)|(divid)|(and)|(or)|(xor))ed) by )"+
+				VAL.get(head+"Val1")+")";
+	}
+	public static String normalizeOperation(String str, Matcher matcher, String head){
 		String operation = matcher.group(head+"XOpOp1");
 		String s = "?";
 		if(operation.equals("increased"))
@@ -139,20 +159,22 @@ public class Regex {
 			s = " |= ";
 		else if(operation.equals("xored"))
 			s = " ^= ";
-		return s+normalizeValue(matcher.group(head+"XOpVal1"));
+		return s+VAL.norm(matcher.group(head+"XOpVal1"));
 	}
 
-	public static String normalizeComparator(String str){
-		String head = "NormComp";
-		String pattern = getCompRegex(head);
-		Matcher matcher = Pattern.compile(pattern).matcher(str);
-		matcher.find();
+
+	public static String getCompRegex(String str){
+		String head = str+"XComp";
+		return "(?<"+str+">"+VAL1.get(head+"Val1")+" (?<"+head+"C1>(is|was|has|had)( not)?( ((less)|(fewer)|(greater)"+
+				"|(more)) than)?) "+VAL1.get(head+"Val2")+")";
+	}
+	public static String normalizeComparator(String str, Matcher matcher, String head){
 		String comp = matcher.group(head+"XCompC1");
 		comp = comp.replace("is", "was");
 		comp = comp.replace("has", "was");
 		comp = comp.replace("had", "was");
 		comp = comp.replace("more", "greater");
-		comp = comp.replace("less", "fewer");
+		comp = comp.replace("fewer", "less");
 		String s = "?";
 		if(comp.equals("was"))
 			s = "==";
@@ -169,39 +191,16 @@ public class Regex {
 
 		String val1 = matcher.group(head+"XCompVal1");
 		String val2 = matcher.group(head+"XCompVal2");
-		return normalizeValue(val1)+s+normalizeValue(val2);
+		return VAL1.norm(val1)+s+VAL1.norm(val2);
 	}
-	
-	public static String normalizeString1(String str){
-		String head = "normalizeString1";
-		
-		Matcher matcher = Pattern.compile(getLitStringRegex(head)).matcher(str);
-		if(matcher.matches()){  return normalizeLiteral(str);  }
-		
-		matcher = Pattern.compile(getVarRegex(head)).matcher(str);
-		if(matcher.matches()){	return normalizeVariable(str);  }
-		
-		return null;
-	}
-	
-	public static String normalizeString3(String str){
-		String head = "normalizeString3";
-		
-		String pattern = getString3Regex(head);
-		Matcher matcher = Pattern.compile(pattern).matcher(str);
-		/*
-		while(matcher.group("AString2String"+STR_DEPTH) != null){ // While STR_DEPTH might me too low, increase STR_DEPTH.
-			STR_DEPTH *= 1.5;
-			pattern = getString2Regex(head);
-			matcher = Pattern.compile(pattern).matcher(str);
-		}
-		*/
+
+	public static String normalizeString3(String str, Matcher matcher, String head){		
 		if(matcher.matches()){
 			String res = "";
 			for(int i=1; i<=STR_DEPTH; i++){
 				String temp = matcher.group(head+"XString3XString2String"+i);
 				if(temp != null)
-					res += "+"+normalizeString1(temp);
+					res += "+"+STRING1.norm(temp);
 			}
 			res = res.substring(1); // Cuts off the initial plus.
 			return res;
@@ -209,60 +208,18 @@ public class Regex {
 		
 		return null;
 	}
-
-	public static String getVarRegex(String str){
-		return "(?<"+str+">(a |an |the )??_(?<"+str+"Name1>[\\w ']+?)_)";
-	}
-	public static String getTypeRegex(String str){
-		return "(?<"+str+">(a |the |an )*((logical)|(argument)|(number)|(name)|(character)|(letter)|(void))(s|es)*)";
-	}
-	public static String getClassRegex(String str){
-		return "(?<"+str+">[A-Z]+[\\w ]*)";
-	}
-	public static String getLitRegex(String str){
-		return "(?<"+str+">"+LITERAL_NUMBER_REGEX+"|"+getLitStringRegex(str+"XLit1")+"|"+LITERAL_BOOL_REGEX+")";
-	}
-	public static String getLitNumRegex(String str){
-		return "(?<"+str+">"+LITERAL_NUMBER_REGEX+")";
-	}
-	private static String getLitStringRegex(String str){
-		String head = str+"XLitstring";
-		return "(?<"+head+"Qm1>"+QUOTE_MARK+")(?<"+head+"Quote1>(?s).+?)\\k<"+head+"Qm1>";
-	}
-	private static String getString1Regex(String str){
-		String head = str+"XString1";
-		return "(?<"+str+">("+getLitStringRegex(head+"Set1")+"|"+getVarRegex(head+"Set2")+"))";
-	}
+	
 	// Allows for concatenation of strings.
 	public static String getString3Regex(String str){
 		String head = str+"XString3";
-		return "(?<"+str+">("+getString1Regex(head+"XString2String1")+getString2Regex(head, STR_DEPTH-2)+"))";
+		return "(?<"+str+">("+STRING1.get(head+"XString2String1")+getString2Regex(head, STR_DEPTH-2)+"))";
 	}
-	public static String getValRegex(String str){
-		String head = str+"XVal";
-		return "(?<"+str+">("+getLitRegex(head+"Set1")+"|"+getVarRegex(head+"Set2")+"|"+getString3Regex(head+"Set3")+"))";
-	}
-	public static String getOpRegex(String str){
-		String head = str+"XOp";
-		return "(?<"+str+">((?<"+head+"Op1>((increased)|(decreased)|(multiplied)|(divided)|(anded)|(ored)|(xored))) by )"+
-				getValRegex(head+"Val1")+")";
-	}
-	public static String getCompRegex(String str){
-		String head = str+"XComp";
-		return "(?<"+str+">"+getValRegex(head+"Val1")+" (?<"+head+"C1>(is|was|has|had)( not)?( ((less)|(fewer)|(greater)"+
-				"|(more)) than)?) "+getValRegex(head+"Val2")+")";
-	}
-	public static String getVal2Regex(String str){
-		return "(?<"+str+">"+"("+getValRegex(str+"XVal2Set1")+"|"+getCompRegex(str+"XVal2Set2")+"))";
-	}
-	
-	
-	private static String getString2Regex(String str, int i){
-		// Let x=0;
+
+	public static String getString2Regex(String str, int i){
 		String head = str+"XString2";
 		if(i <= -1)
 			return "";
-		else
-			return "("+getString1Regex(head+"String"+(STR_DEPTH-i))+getString2Regex(str, i-1)+")??";
+		return "("+STRING1.get(head+"String"+(STR_DEPTH-i))+getString2Regex(str, i-1)+")??";
 	}
+
 }

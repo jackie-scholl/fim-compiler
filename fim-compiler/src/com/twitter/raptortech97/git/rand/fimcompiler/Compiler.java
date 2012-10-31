@@ -28,11 +28,13 @@ public class Compiler {
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException,
 	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+		Regex.setup();
+		Interpreter.setup();
 		
 		File fimFile = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
 		File javaFile = interpret(fimFile); // Interpret FiM++ into Java
 		File classFile = compile(javaFile); // Compile Java into bytecode
-		Class cls = loadClass(classFile);   // Load class from bytecode
+		Class<?> cls = loadClass(classFile);   // Load class from bytecode
 		runClassMain(cls);                  // Run the main method of the class.
 	}
 	
@@ -78,31 +80,29 @@ public class Compiler {
 		return new File(source.getAbsolutePath().replace(".java", ".class"));
 	}
 
-	@SuppressWarnings("rawtypes")
 	// Loads a .class file
-	private static Class loadClass(File source) throws ClassNotFoundException, IOException{
+	private static Class<?> loadClass(File source) throws ClassNotFoundException, IOException{
 		String name = source.getName().replace(".class", "");		
 		String[] dirs = new String[]{source.getParent()};
 		URL[] urls = new URL[dirs.length];
 		for(int i=0; i<dirs.length; i++)
 			urls[i] = new File(dirs[i]).toURI().toURL();
 		URLClassLoader loader = new URLClassLoader(urls);
-		Class cls = loader.loadClass(name);
+		Class<?> cls = loader.loadClass(name);
 		loader.close();
 		return cls;
 	}
 
-	@SuppressWarnings("rawtypes")
 	// Runs the main method of a class.
-	private static void runClassMain(Class cls) throws InvocationTargetException, IllegalAccessException{
+	private static void runClassMain(Class<?> cls) throws InvocationTargetException, IllegalAccessException{
 		String className = cls.getName();
 		String[] strs = new String[1];
 		try {
-			@SuppressWarnings("unchecked")
 			Method m = cls.getMethod("main", strs.getClass());
 			m.invoke(null, (Object[]) strs);
 		} catch (NoSuchMethodException e) {
 			System.out.println("No main method in class "+className);
 		}
 	}
+
 }

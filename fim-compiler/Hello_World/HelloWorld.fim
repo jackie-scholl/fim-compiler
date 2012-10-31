@@ -1,7 +1,7 @@
 Dear Princess Celestia: HelloWorld
 (
 This is a block comment.
-This test program shows off the capabilities of the compiler and serves to test it. Currently, it should (does) print:
+This test program shows off the capabilities of the compiler and serves to test it. Currently, it should (and does) print:
 67.428
 22.476
 24.476
@@ -32,12 +32,20 @@ Did you know that _X_ was a number?
 I did _sum of everything from one to 100_ and gave the result to _X_.
 I proclaimed _X_.
 
-I did _how to sing Applejack's Drinking Song_.
+Did you know that _temp_ was a name?
+I asked _temp_ "What is your name? ".
+I said "Hello, "_temp_"!".
+
+Did you know that _test_ was the argument true?
+Did you know that _test_ then became whether 4000 was greater than the result of the _sum of everything from one to 100_?
+I said _test_.
+
+I did _perform Applejack's Drinking Song_.
 
 That's all about an _important lesson about friendship_.
 
 
-I learned the _sum of everything from one to 100_ to get a number.
+I learned how to _sum of everything from one to 100_ to get a number.
 Did you know that the _sum_ was the number 0?
 Did you know that the _current number_ was the number 1?
 Did you know that the _test_ was the argument false?
@@ -50,15 +58,13 @@ Did you know that _test_ then became whether _current number_ was not greater th
 That's what I did.
 
 Then you get the _sum_!
-That's all about the _sum of everything from one to 100_.
+That's all about how to _sum of everything from one to 100_.
 
 P.S. This is a comment.
 
+I learned how to _perform Applejack's Drinking Song_.
 
-
-I learned _how to sing Applejack's Drinking Song_.
-
-Did you know that _Applejack_ is the number 99?
+Did you know that _Applejack_ is the number 3?
 Did you know that _test_ is the argument true?
 
 As long as _Applejack_ had more than 1:
@@ -80,6 +86,6 @@ That’s what I did.
 
 P.S. Twilight's drunken state truly frightened me, so I couldn't disregard her order to send you this letter. Who would have thought her first reaction to hard cider would be this... explosive? I need your advice, your help, everything, on how to deal with her drunk... self. -Spike
 
-That's all about _how to sing Applejack's Drinking Song_!
+That's all about how to _perform Applejack's Drinking Song_!
 
 Your faithful student, Twilight Sparkle!

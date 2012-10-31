@@ -11,213 +11,157 @@
 
 package com.twitter.raptortech97.git.rand.fimcompiler;
 
+import java.util.*;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Interpreter {
+	private static List<InterpretElement> interpreters;
+
+	public static void setup(){
+		interpreters = new ArrayList<InterpretElement>();
+		try {			
+			String regexComment = "(P\\.)+S\\.(?<comment>.*)";
+			String regexClassDeclaration = "Dear "+Regex.CLASS.get("A")+": "+Regex.CLASS.get("B");
+			String regexEndClass = "Your faithful student, ([\\w\\s]+)"+Regex.PUNC;
+			String regexMainMethod = "Today I learned (how to )?"+Regex.VAR.get("methodName")+Regex.PUNC;
+			String regexMethodStart = "I learned (how to )?"+Regex.VAR.get("methodName")+Regex.PUNC;
+			String regexMethodStartReturn = "I learned (how to )?"+Regex.VAR.get("methodName")+" to get "+
+					Regex.TYPE.get("returnType")+Regex.PUNC;
+			String regexMethodEnd = "That's( all)? about (how to )?"+Regex.VAR.get("methodName")+Regex.PUNC;
+			String regexMethodCallRes = "I did "+Regex.VAR.get("methodName")+" and gave the result to "+
+					Regex.VAR.get("varName")+Regex.PUNC;
+			String regexMethodCall =  "I did "+Regex.VAR.get("methodName")+Regex.PUNC;
+			String regexVarDecType = "Did you know that "+Regex.VAR.get("varName")+" (is|are|was|were) "+
+					Regex.TYPE.get("typeName")+Regex.PUNC;
+			String regexVarDecVal =  "Did you know that "+Regex.VAR.get("varName")+" (is|are|was|were) "+
+					Regex.TYPE.get("typeName")+" "+Regex.VAL.get("val")+Regex.PUNC;
+			String regexVarReAssign =  "Did you know that "+Regex.VAR.get("varName")+" (then)? became (whether )?"+
+					Regex.VAL.get("val")+Regex.PUNC;
+			String regexVarMod = "(Did you know that )?"+Regex.VAR.get("varName")+" (was )?(then )?"+
+					Regex.OP.get("op")+Regex.PUNC;
+			String regexVarModPrompt = Regex.PRONOUN+" (asked) "+Regex.VAR.get("var")+" "+Regex.STRING.get("prompt")+
+					Regex.PUNC;
+			String regexIfStart = "((If)|(When)) "+Regex.VAL.get("bool")+"( then)?"+Regex.PUNC;
+			String regexWhileStart = "((As long as)|(While)) "+Regex.VAL.get("bool")+Regex.PUNC;
+			String regexElseIf = "((Otherwise)|(Or else)) ((if)|(when)) "+Regex.VAL.get("bool")+"( then)?"+Regex.PUNC;
+			String regexElse = "((Otherwise)|(Or else))"+Regex.PUNC;
+			String regexIfEnd = "That"+Regex.APOSTROPHE+"s what I ((did)|(would do))"+Regex.PUNC;
+			String regexPrint = "I ((said)|(wrote)|(sang)|(spoke)|(proclaimed)|(thought)) "+Regex.STRING.get("value")+Regex.PUNC;
+			String regexReturn = "Then "+Regex.PRONOUN+" ((got)|(get)) "+Regex.VAL.get("value")+Regex.PUNC;
+
+			interpreters.add(new InterpretElement("normalizeComment",           regexComment));
+			interpreters.add(new InterpretElement("normalizeClassDeclaration",  regexClassDeclaration));
+			interpreters.add(new InterpretElement("normalizeEndClass",          regexEndClass));	
+			interpreters.add(new InterpretElement("normalizeMainMethod",        regexMainMethod));			
+			interpreters.add(new InterpretElement("normalizeMethodStart",       regexMethodStart));
+			interpreters.add(new InterpretElement("normalizeMethodStartReturn", regexMethodStartReturn));
+			interpreters.add(new InterpretElement("normalizeMethodEnd",         regexMethodEnd));
+			interpreters.add(new InterpretElement("normalizeMethodCallRes",     regexMethodCallRes));
+			interpreters.add(new InterpretElement("normalizeMethodCall",        regexMethodCall));
+			interpreters.add(new InterpretElement("normalizeVarDecType",        regexVarDecType));
+			interpreters.add(new InterpretElement("normalizeVarDecVal",         regexVarDecVal));
+			interpreters.add(new InterpretElement("normalizeVarReAssign",       regexVarReAssign));
+			interpreters.add(new InterpretElement("normalizeVarMod",            regexVarMod));
+			interpreters.add(new InterpretElement("normalizeVarModPrompt",      regexVarModPrompt));
+			interpreters.add(new InterpretElement("normalizeIfStart",           regexIfStart));
+			interpreters.add(new InterpretElement("normalizeWhileStart",        regexWhileStart));
+			interpreters.add(new InterpretElement("normalizeElseIf",            regexElseIf));
+			interpreters.add(new InterpretElement("normalizeElse",              regexElse));
+			interpreters.add(new InterpretElement("normalizeIfEnd",             regexIfEnd));
+			interpreters.add(new InterpretElement("normalizePrint",             regexPrint));
+			interpreters.add(new InterpretElement("normalizeReturn",            regexReturn));
+			
+			List<Integer> lengths = new ArrayList<Integer>();
+			for(InterpretElement i : interpreters){
+				lengths.add(i.getLength());
+			}
+			System.out.println(lengths);
+
+		} catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static String interpretLine(String text){
 		if(text == null || text.equals(""))
 			return "";
-		
-		String[] results = new String[]{interpretComment(text),
-				interpretClassDeclaration(text), interpretEndClass(text),
-				interpretMainMethod(text), interpretMethodStart(text), interpretMethodStartReturn(text),
-						interpretMethodEnd(text), interpretMethodCallRes(text), interpretMethodCall(text), 
-				interpretVarDecType(text), interpretVarDecVal(text), interpretVarReAssign(text), interpretVarMod(text),
-								interpretVarModComp(text),
-				interpretIfStart(text), interpretWhileStart(text), interpretElseIf(text), interpretElse(text), interpretIfEnd(text),
-				interpretPrint(text), interpretReturn(text)};
-		
+
+		List<String> results = new ArrayList<String>();
+		for(InterpretElement i : interpreters)
+			results.add(i.norm(text));
+
 		for(String res : results)
 			if(res != null)
 				return res;
 
 		return "null // Could not interpret the line: \""+text+"\"";
 	}
-	
-	private static String interpretComment(String text){
-		String pattern = "(P\\.)+S\\.(?<comment>.*)";
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "//"+matcher.group("comment");
-		return null;
-	}
-	
-	private static String interpretClassDeclaration(String text){
-		String pattern = "Dear "+Regex.getClassRegex("A")+": "+Regex.getClassRegex("B");
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "public class "+Regex.normalizeClassName(matcher.group("B"))+" extends "
-					+Regex.normalizeClassName(matcher.group("A"))+"{";
-		return null;
+
+	public static String normalizeComment(String text, Matcher matcher){
+		return "//"+matcher.group("comment");
 	}
 
-	private static String interpretEndClass(String text){
-		String pattern = "Your faithful student, ([\\w\\s]+)"+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "} // Author: "+matcher.group(1);
-		return null;
+	public static String normalizeClassDeclaration(String text, Matcher matcher){
+		return "public class "+Regex.CLASS.norm(matcher.group("B"))+" extends "+Regex.CLASS.norm(matcher.group("A"))+"{";
 	}
-	
-	private static String interpretMainMethod(String text){
-		String pattern = "Today I learned "+Regex.getVarRegex("methodName")+Regex.PUNC;;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "public static void main(String[] args){ "+Regex.normalizeVariable(matcher.group("methodName"))+"(); }";
-		return null;
+	public static String normalizeEndClass(String text, Matcher matcher){
+		return "} // Author: "+matcher.group(1);
 	}
-	
-	private static String interpretMethodStart(String text){
-		String pattern = "I learned "+Regex.getVarRegex("methodName")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "public static void "+Regex.normalizeVariable(matcher.group("methodName"))+"(){";
-		return null;
+	public static String normalizeMainMethod(String text, Matcher matcher){
+		return "public static void main(String[] args){ "+Regex.VAR.norm(matcher.group("methodName"))+"(); }";
 	}
-	
-	private static String interpretMethodStartReturn(String text){
-		String pattern = "I learned "+Regex.getVarRegex("methodName")+" to get "+Regex.getTypeRegex("returnType")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "public static "+Regex.normalizeType(matcher.group("returnType"))+" "+
-					Regex.normalizeVariable(matcher.group("methodName"))+"(){";
-		return null;
+	public static String normalizeMethodStartReturn(String text, Matcher matcher){
+		return "public static "+Regex.TYPE.norm(matcher.group("returnType"))+" "+
+				Regex.VAR.norm(matcher.group("methodName"))+"(){";
 	}
-	
-	private static String interpretMethodEnd(String text){
-		String pattern = "That's( all)? about (a |an |the )?"+Regex.getVarRegex("methodName")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "}";
-		return null;
-	}	
-
-	private static String interpretVarDecType(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (was|were) "+
-				Regex.getTypeRegex("typeName")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVariable(matcher.group("varName"))+";";
-		return null;
+	public static String normalizeMethodStart(String text, Matcher matcher){
+		return "public static void "+Regex.VAR.norm(matcher.group("methodName"))+"(){";
 	}
-	
-	private static String interpretVarDecVal(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (is|are|was|were) "+
-				Regex.getTypeRegex("typeName")+" "+Regex.getVal2Regex("val")+Regex.PUNC;
-
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return Regex.normalizeType(matcher.group("typeName"))+" "+Regex.normalizeVariable(matcher.group("varName"))+
-					"="+Regex.normalizeValue2(matcher.group("val"))+";";
-		return null;
+	public static String normalizeMethodEnd(String text, Matcher matcher){
+		return "}";
 	}
-	
-	private static String interpretVarReAssign(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (then)? became "+
-				Regex.getVal2Regex("val")+Regex.PUNC;
-
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return Regex.normalizeVariable(matcher.group("varName"))+" = "+Regex.normalizeValue2(matcher.group("val"))+";";
-		return null;
+	public static String normalizeMethodCallRes(String text, Matcher matcher){
+		return Regex.VAR.norm(matcher.group("varName"))+"="+Regex.VAR.norm(matcher.group("methodName"))+"();";
 	}
-	
-	private static String interpretVarMod(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+" (was )?(then )?"+
-				Regex.getOpRegex("op")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return Regex.normalizeVariable(matcher.group("varName"))+Regex.normalizeOperation(matcher.group("op"))+";";
-		return null;
+	public static String normalizeMethodCall(String text, Matcher matcher){
+		return Regex.VAR.norm(matcher.group("methodName"))+"();";
 	}
-	
-	private static String interpretVarModComp(String text){
-		String pattern = "Did you know that "+Regex.getVarRegex("varName")+"( then)? became whether "+
-				Regex.getCompRegex("comp")+Regex.PUNC;
-		
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		matcher.find();
-		if(matcher.matches()){
-			return Regex.normalizeVariable(matcher.group("varName"))+" = ("+
-				Regex.normalizeComparator(matcher.group("comp"))+");";
-		}
-		return null;
+	public static String normalizeVarDecType(String text, Matcher matcher){
+		return Regex.TYPE.norm(matcher.group("typeName"))+" "+Regex.VAR.norm(matcher.group("varName"))+";";
 	}
-	
-	private static String interpretMethodCall(String text){
-		String pattern = "I did "+Regex.getVarRegex("methodName")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return Regex.normalizeVariable(matcher.group("methodName"))+"();";
-		return null;
+	public static String normalizeVarDecVal(String text, Matcher matcher){
+		return Regex.TYPE.norm(matcher.group("typeName"))+" "+Regex.VAR.norm(matcher.group("varName"))+
+				"="+Regex.VAL.norm(matcher.group("val"))+";";
 	}
-	
-	private static String interpretMethodCallRes(String text){
-		String pattern = "I did "+Regex.getVarRegex("methodName")+" and gave the result to "+
-				Regex.getVarRegex("varName")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return Regex.normalizeVariable(matcher.group("varName"))+"="+Regex.normalizeVariable(matcher.group("methodName"))+"();";
-		return null;
+	public static String normalizeVarReAssign(String text, Matcher matcher){
+		return Regex.VAR.norm(matcher.group("varName"))+" = "+Regex.VAL.norm(matcher.group("val"))+";";
 	}
-	
-	private static String interpretIfStart(String text){
-		String pattern = "((If)|(When)) "+Regex.getVal2Regex("bool")+"( then)?"+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "if("+Regex.normalizeValue2(matcher.group("bool"))+"){";
-		return null;
+	public static String normalizeVarMod(String text, Matcher matcher){
+		return Regex.VAR.norm(matcher.group("varName"))+Regex.OP.norm(matcher.group("op"))+";";
 	}
-	
-	static String interpretWhileStart(String text){
-		String pattern = "((As long as)|(While)) "+Regex.getVal2Regex("bool")+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "while("+Regex.normalizeValue2(matcher.group("bool"))+"){";
-		return null;
+	public static String normalizeVarModPrompt(String text, Matcher matcher){
+		return "System.out.print("+Regex.STRING.norm(matcher.group("prompt"))+"); "+
+				Regex.VAR.norm(matcher.group("var"))+" = new java.util.Scanner(System.in).nextLine();";
 	}
-	
-	private static String interpretElse(String text){
-		String pattern = "((Otherwise)|(Or else))"+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "} else {";
-		return null;
+	public static String normalizeIfStart(String text, Matcher matcher){
+		return "if("+Regex.VAL.norm(matcher.group("bool"))+"){";
 	}
-	
-	private static String interpretElseIf(String text){
-		String pattern = "((Otherwise)|(Or else)) ((if)|(when)) "+Regex.getVal2Regex("bool")+"( then)?"+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches()){
-			return "} else if("+Regex.normalizeValue2(matcher.group("bool"))+"){";
-		}
-		return null;
+	public static String normalizeWhileStart(String text, Matcher matcher){
+		return "while("+Regex.VAL.norm(matcher.group("bool"))+"){";
 	}
-	
-	static String interpretIfEnd(String text){
-		String pattern = "That"+Regex.APOSTROPHE+"s what I ((did)|(would do))"+Regex.PUNC;
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "}";
-		return null;
+	public static String normalizeElseIf(String text, Matcher matcher){
+		return "} else if("+Regex.VAL.norm(matcher.group("bool"))+"){";
 	}
-	
-	static String interpretPrint(String text){
-		String pattern = "I (said|wrote|sang|spoke|proclaimed|thought) "+Regex.getString3Regex("value")+Regex.PUNC;
-
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "System.out.println("+Regex.normalizeString3(matcher.group("value"))+");";
-		return null;
+	public static String normalizeElse(String text, Matcher matcher){
+		return "} else {";
 	}
-	
-	private static String interpretReturn(String text){
-		String pattern = "Then (I|you||he|she|we|you'll|they) (got|get) "+Regex.getVal2Regex("value")+Regex.PUNC;
-
-		Matcher matcher = Pattern.compile(pattern).matcher(text);
-		if(matcher.matches())
-			return "return "+Regex.normalizeValue2(matcher.group("value"))+";";
-		return null;
+	public static String normalizeIfEnd(String text, Matcher matcher){
+		return "}";
+	}
+	public static String normalizePrint(String text, Matcher matcher){
+		return "System.out.println("+Regex.STRING.norm(matcher.group("value"))+");";
+	}
+	public static String normalizeReturn(String text, Matcher matcher){
+		return "return "+Regex.VAL.norm(matcher.group("value"))+";";
 	}
 }

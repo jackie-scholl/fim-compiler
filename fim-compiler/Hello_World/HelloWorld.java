@@ -22,7 +22,15 @@ double X;
 X=sum_of_everything_from_one_to_100();
 System.out.println(X);
 
-how_to_sing_Applejacku0027s_Drinking_Song();
+String temp;
+System.out.print("What is your name? "); temp = new java.util.Scanner(System.in).nextLine();
+System.out.println("Hello, "+temp+"!");
+
+boolean test=true;
+test = 4000>sum_of_everything_from_one_to_100();
+System.out.println(test);
+
+perform_Applejacku0027s_Drinking_Song();
 
 }
 
@@ -31,12 +39,12 @@ public static double sum_of_everything_from_one_to_100(){
 double sum=0;
 double current_number=1;
 boolean test=false;
-test = (current_number<=100);
+test = current_number<=100;
 
 while(test){
 sum += current_number;
 current_number += 1;
-test = (current_number<=100);
+test = current_number<=100;
 }
 
 return sum;
@@ -44,11 +52,9 @@ return sum;
 
 // This is a comment.
 
+public static void perform_Applejacku0027s_Drinking_Song(){
 
-
-public static void how_to_sing_Applejacku0027s_Drinking_Song(){
-
-double Applejack=99;
+double Applejack=3;
 boolean test=true;
 
 while(Applejack>1){
