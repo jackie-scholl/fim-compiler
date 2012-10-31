@@ -19,7 +19,7 @@ class OrElement implements Element{
 	private static Random RAND = new Random();
 	public OrElement(String name, Element...elements){
 		subs = elements;
-		this.name = "XCombine";
+		this.name = name;
 	}
 	public String get(String str){
 		String head = name+rand()+"get";
@@ -126,6 +126,7 @@ class InterpretElement{
 			return (String) norm.invoke(null, str, matcher);
 		} catch (IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
+			System.err.println(this);
 			e.printStackTrace();
 		}
 		return "Invocation failure";
@@ -135,5 +136,8 @@ class InterpretElement{
 	}
 	public int getLength(){
 		return regex.pattern().length();
+	}
+	public String toString(){
+		return "Norm: "+norm+Compiler.LINEBREAK+"Regex: "+regex;
 	}
 }

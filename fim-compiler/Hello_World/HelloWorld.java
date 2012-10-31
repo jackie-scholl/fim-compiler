@@ -19,12 +19,15 @@ Rarity *= Spike;
 System.out.println(Rarity);
 
 double X;
-X=sum_of_everything_from_one_to_100();
+X = sum_of_everything_from_one_to_100();
 System.out.println(X);
 
-String temp;
-System.out.print("What is your name? "); temp = new java.util.Scanner(System.in).nextLine();
-System.out.println("Hello, "+temp+"!");
+X = sum_three_numbers(7.6,X,5);
+System.out.println(X);
+
+// Did you know that _temp_ was a name?
+// I asked _temp_ "What is your name? ".
+// I said "Hello, "_temp_"!".
 
 boolean test=true;
 test = 4000>sum_of_everything_from_one_to_100();
@@ -76,6 +79,12 @@ System.out.println("No more jugs of cider on the wall, no more jugs of cider. Go
 
 // Twilight's drunken state truly frightened me, so I couldn't disregard her order to send you this letter. Who would have thought her first reaction to hard cider would be this... explosive? I need your advice, your help, everything, on how to deal with her drunk... self. -Spike
 
+}
+
+public static double sum_three_numbers(double a,double b,double c){
+a += b;
+a += c;
+return a;
 }
 
 } // Author: Twilight Sparkle

@@ -20,6 +20,7 @@ public class Regex {
 	public static String PUNC = "[,:\\?\\.\\!"+COMMA+"]";
 	public static String PRONOUN = "((I)|(you)|(he)|(she)|(we)|(ya'll)|(they))";
 	private static int STR_DEPTH = 10; // Determines the maximum allowed number of strings to be concatenated at once. Higher values run slower.
+	private static int ARGS_DEPTH = 10;
 	
 	public static Element CLASS;
 	public static Element VAR;
@@ -30,6 +31,7 @@ public class Regex {
 	public static Element COMP;
 	public static Element STRING;
 	public static Element METHOD_CALL;
+	public static Element METHOD_CALL_ARGS;
 	
 	private static Element STRING1;
 	private static Element VAL1;
@@ -42,13 +44,15 @@ public class Regex {
 			OP     = new NormalElement("op", "normalizeOperation",  "getOpRegex");
 			COMP   = new NormalElement("comp", "normalizeComparator", "getCompRegex");
 			STRING = new NormalElement("string", "normalizeString3",    "getString3Regex");
-			METHOD_CALL = new NormalElement("method", "normalizeMethodCall", "getMethodCallRegex");
+			METHOD_CALL = new NormalElement("methodCall", "normalizeMethodCall", "getMethodCallRegex");
+			
+			METHOD_CALL_ARGS = new NormalElement("methodCallArgs", "normalizeMethodCallArgs", "getMethodCallArgsRegex");
 			Element LIT_NUM = new NormalElement("lit_num", "normalizeLiteralNumber", "getLitNumRegex");
 			Element LIT_STRING = new NormalElement("lit_string", "normalizeLiteralString", "getLitStringRegex");
 			Element LIT_BOOL = new NormalElement("lit_bool", "normalizeLiteralBoolean", "getLitBoolRegex");
 			LIT = new OrElement("lit", LIT_NUM, LIT_STRING, LIT_BOOL);
 			VAL1   = new OrElement("val1", LIT, VAR, STRING, METHOD_CALL);
-			VAL    = new OrElement("val", VAL1, COMP);
+			VAL    = new OrElement("val", VAL1, COMP, METHOD_CALL_ARGS);
 			STRING1 = new OrElement("string1", LIT_STRING, VAR);
 		} catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
@@ -115,11 +119,11 @@ public class Regex {
 		return "(?<"+head+"Qm1>"+QUOTE_MARK+")(?<"+head+"Quote1>(?s).+?)\\k<"+head+"Qm1>";
 	}
 
-	public static String normalizeLiteralNumber(String str, Matcher matcher, String head){
-		return matcher.group(head);
-	}
 	public static String getLitNumRegex(String str){
 		return "(?<"+str+">\\d+(\\.\\d+)?)";
+	}
+	public static String normalizeLiteralNumber(String str, Matcher matcher, String head){
+		return matcher.group(head);
 	}
 	
 	public static String getLitNothingRegex(String str){
@@ -128,6 +132,15 @@ public class Regex {
 	public static String normalizeLiteralNothing(String str, Matcher matcher, String head){
 		return "void";
 	}
+	/*
+	public static String getMethodCallArgsRegex(String str){
+		String head = str+"XMethodcallargs";
+		return "(?<"+str+">the result of "+VAR.get(head+"Method1")+")";
+	}
+	public static String normalizeMethodCallArgs(String str, Matcher matcher, String head){
+		return VAR.norm(matcher.group(head+"XMethodcallMethod1"))+"()";
+	}
+	*/
 	
 	public static String getMethodCallRegex(String str){
 		String head = str+"XMethodcall";
@@ -135,6 +148,13 @@ public class Regex {
 	}
 	public static String normalizeMethodCall(String str, Matcher matcher, String head){
 		return VAR.norm(matcher.group(head+"XMethodcallMethod1"))+"()";
+	}
+	
+	public static String getMethodCallArgsRegex(String str){
+		return getMethodCallArgs3Regex(str);
+	}
+	public static String normalizeMethodCallArgs(String str, Matcher matcher, String head){
+		return normalizeMethodCallArgs3(head, matcher);
 	}
 
 	public static String getOpRegex(String str){
@@ -221,5 +241,40 @@ public class Regex {
 			return "";
 		return "("+STRING1.get(head+"String"+(STR_DEPTH-i))+getString2Regex(str, i-1)+")??";
 	}
+	
+	
+	private static String getMethodCallArgs3Regex(String str){
+		String head = str+"XMethodCallArgs3";
+		return "(?<"+str+">(the result of )?"+Regex.VAR.get(head+"MethodName")+" using "+getMethodCallArgs1Regex(head+"Call1")+
+				getMethodCallArgs2Regex(head, ARGS_DEPTH-2)+")";
+	}
+	private static String normalizeMethodCallArgs3(String str, Matcher matcher){
+		String head = str+"XMethodCallArgs3";
+		return Regex.VAR.norm(matcher.group(head+"MethodName"))+"("+normalizeMethodCallArgs2(head, matcher)+")";
+	}
 
+	private static String getMethodCallArgs2Regex(String str, int i){
+		String head = str;
+		if(i <= -1)
+			return "";
+		return "( and "+getMethodCallArgs1Regex(head+"Call"+(ARGS_DEPTH-i))+getMethodCallArgs2Regex(str, i-1)+")??";
+	}
+	private static String normalizeMethodCallArgs2(String str, Matcher matcher){
+		String head = str+"Call";
+		String args = "";
+		for(int i=1; i<=ARGS_DEPTH; i++){
+			String temp = matcher.group(head+i);
+			if(temp != null)
+				args += ","+normalizeMethodCallArgs1(matcher, head+i);
+		}
+		args = args.substring(1); // Cuts off the initial comma.
+		return args;
+	}
+	
+	private static String getMethodCallArgs1Regex(String str){
+		return Regex.VAL1.get(str);
+	}
+	private static String normalizeMethodCallArgs1(Matcher matcher, String head){
+		return Regex.VAL1.norm(matcher.group(head));
+	}
 }
