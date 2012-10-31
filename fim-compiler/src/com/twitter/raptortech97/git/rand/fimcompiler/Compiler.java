@@ -18,24 +18,27 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.tools.*;
 
 public class Compiler {
 	public static final File CELESTIA = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//src//com//twitter"+
 			"//raptortech97//git//rand//fimcompiler//Princess_Celestia.java");
+	public static final String LINEBREAK = System.getProperty("line.separator");
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException,
 	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		
-		File fileIn = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
-		act(fileIn);
+		File fimFile = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
+		File javaFile = interpret(fimFile); // Interpret FiM++ into Java
+		File classFile = compile(javaFile); // Compile Java into bytecode
+		Class cls = loadClass(classFile);   // Load class from bytecode
+		runClassMain(cls);                  // Run the main method of the class.
 	}
 	
-	public static void act(File fileIn) throws FileNotFoundException, IOException, ClassNotFoundException, NoSuchMethodException,
-	IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	// Interprets FiM++ into Java.
+	public static File interpret(File fileIn) throws FileNotFoundException, IOException, ClassNotFoundException,
+			NoSuchMethodException,	IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 
 		File fileOut = new File(fileIn.getAbsolutePath().replace(".fim", ".java"));
 		BufferedReader in = new BufferedReader(new FileReader(fileIn));
@@ -60,29 +63,37 @@ public class Compiler {
 			else if (str.startsWith("("))
 				comment = true;
 			else if (!comment)
-				out.println(interpret(str));
+				out.println(Interpreter.interpretLine(str));
 		}
 		
 		out.close(); in.close();
-		@SuppressWarnings("rawtypes")
-		Class cls2 = compileLoad(fileOut).loadClass("HelloWorld");
-		runClassMain(cls2);
+		return fileOut;
 	}
 
-	private static ClassLoader compileLoad(File source) throws ClassNotFoundException, IOException, IllegalAccessException,
+	// Compiles a given Java file and returns the ClassLoader to load it.
+	private static File compile(File source) throws ClassNotFoundException, IOException, IllegalAccessException,
 				InvocationTargetException{
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		compiler.run(null, null, null, source.getAbsolutePath());
-
-		String[] dirs = new String[]{source.getParent(), CELESTIA.getParent()};
-		URL[] urls = new URL[dirs.length];
-		for(int i=0; i<dirs.length; i++)
-			urls[i] = new File(dirs[i]).toURI().toURL();
-		ClassLoader loader = new URLClassLoader(urls);
-		return loader;
+		return new File(source.getAbsolutePath().replace(".java", ".class"));
 	}
 
 	@SuppressWarnings("rawtypes")
+	// Loads a .class file
+	private static Class loadClass(File source) throws ClassNotFoundException, IOException{
+		String name = source.getName().replace(".class", "");		
+		String[] dirs = new String[]{source.getParent()};
+		URL[] urls = new URL[dirs.length];
+		for(int i=0; i<dirs.length; i++)
+			urls[i] = new File(dirs[i]).toURI().toURL();
+		URLClassLoader loader = new URLClassLoader(urls);
+		Class cls = loader.loadClass(name);
+		loader.close();
+		return cls;
+	}
+
+	@SuppressWarnings("rawtypes")
+	// Runs the main method of a class.
 	private static void runClassMain(Class cls) throws InvocationTargetException, IllegalAccessException{
 		String className = cls.getName();
 		String[] strs = new String[1];
@@ -93,9 +104,5 @@ public class Compiler {
 		} catch (NoSuchMethodException e) {
 			System.out.println("No main method in class "+className);
 		}
-	}
-
-	private static String interpret(String text){
-		return Interpreter.interpretLine(text);
 	}
 }
