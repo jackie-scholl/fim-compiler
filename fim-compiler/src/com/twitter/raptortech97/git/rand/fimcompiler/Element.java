@@ -44,6 +44,9 @@ class OrElement implements Element{
 	public String norm(String str, Matcher matcher, String head) {
 		return norm(str);
 	}
+	public String toString(){
+		return "Name: "+name;
+	}
 	
 	private static long rand(){
 		return Math.abs(RAND.nextLong());
@@ -99,12 +102,14 @@ class NormalElement implements Element{
 		}
 		return "Invocation failure";
 	}
+	public String toString(){
+		return "Name: "+name;
+	}
 }
 
 class InterpretElement{
 	private Method norm;
 	private Pattern regex;
-	private String name;
 	
 	public InterpretElement(Method normalize, Pattern getRegex){
 		norm = normalize;
@@ -113,7 +118,8 @@ class InterpretElement{
 		assert Arrays.deepEquals(norm.getParameterTypes(), new Class[]{String.class, Matcher.class});
 	}
 	public InterpretElement(String normalize, String getRegex) throws NoSuchMethodException, SecurityException{
-		this(Interpreter.class.getMethod(normalize, String.class, Matcher.class), Pattern.compile(getRegex));
+		this(Interpreter.class.getMethod(normalize, String.class, Matcher.class), Pattern.compile(getRegex, 
+				Pattern.CASE_INSENSITIVE));
 	}
 	public String norm(String str){
 		Matcher matcher = regex.matcher(str);
@@ -130,9 +136,6 @@ class InterpretElement{
 			e.printStackTrace();
 		}
 		return "Invocation failure";
-	}
-	public String getName(){
-		return name;
 	}
 	public int getLength(){
 		return regex.pattern().length();

@@ -18,6 +18,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.tools.*;
 
@@ -30,6 +32,12 @@ public class Compiler {
 	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		Regex.setup();
 		Interpreter.setup();
+		
+		String pattern = Regex.METHOD_CALL_ARGS.get("base");
+		String test = "_X_ became the result of _sum a set of numbers_ with _book_.";
+		test = "_X_ became the result of _sum of three numbers_ using 3 and 5 and 7.";
+		System.out.println(Interpreter.interpretLine(test));
+		System.out.println();
 		
 		File fimFile = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
 		File javaFile = interpret(fimFile); // Interpret FiM++ into Java

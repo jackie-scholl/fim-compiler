@@ -19,30 +19,30 @@ Rarity *= Spike;
 System.out.println(Rarity);
 
 double X;
-X = sum_of_everything_from_one_to_100();
+X = sum_of_everything_from_one_to_n(3);
 System.out.println(X);
 
-X = sum_three_numbers(7.6,X,5);
+// Did you know that _test_ was the argument true?
+// _test_ then became whether 4000 was greater than the result of the _sum of everything from one to n_ using 100?
+// I said _test_.
+
+double[] book = new double[10];
+book[1] = 10;
+book[2] = 13;
+book[7] = 3;
+X = sum_a_set_of_numbers(book);
 System.out.println(X);
-
-// Did you know that _temp_ was a name?
-// I asked _temp_ "What is your name? ".
-// I said "Hello, "_temp_"!".
-
-boolean test=true;
-test = 4000>sum_of_everything_from_one_to_100();
-System.out.println(test);
 
 perform_Applejacku0027s_Drinking_Song();
 
 }
 
 
-public static double sum_of_everything_from_one_to_100(){
+public static double sum_of_everything_from_one_to_n(double n){
 double sum=0;
 double current_number=1;
 boolean test=false;
-test = current_number<=100;
+test = current_number<=n;
 
 while(test){
 sum += current_number;
@@ -77,14 +77,17 @@ System.out.println("No more jugs of cider on the wall, no more jugs of cider. Go
 }
 }
 
-// Twilight's drunken state truly frightened me, so I couldn't disregard her order to send you this letter. Who would have thought her first reaction to hard cider would be this... explosive? I need your advice, your help, everything, on how to deal with her drunk... self. -Spike
+// Twilight's drunken state truly frightened me, so I couldn't disregard her order to send you this letter. Who would
+// 		have thought her first reaction to hard cider would be this... explosive? I need your advice, your help,
+// 		everything, on how to deal with her drunk... self. -Spike
 
 }
 
-public static double sum_three_numbers(double a,double b,double c){
-a += b;
-a += c;
-return a;
+public static double sum_a_set_of_numbers(double[] X){
+double sum=0;
+sum += X[1];
+sum += X[2];
+return sum;
 }
 
 } // Author: Twilight Sparkle

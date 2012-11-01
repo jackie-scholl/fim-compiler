@@ -39,20 +39,23 @@ public class Regex {
 	public static void setup(){
 		try {
 			CLASS  = new NormalElement("Class", "normalizeClassName",  "getClassRegex");
-			VAR    = new NormalElement("var", "normalizeVariable",   "getVarRegex");
 			TYPE   = new NormalElement("type", "normalizeType",       "getTypeRegex");
 			OP     = new NormalElement("op", "normalizeOperation",  "getOpRegex");
 			COMP   = new NormalElement("comp", "normalizeComparator", "getCompRegex");
 			STRING = new NormalElement("string", "normalizeString3",    "getString3Regex");
 			METHOD_CALL = new NormalElement("methodCall", "normalizeMethodCall", "getMethodCallRegex");
-			
 			METHOD_CALL_ARGS = new NormalElement("methodCallArgs", "normalizeMethodCallArgs", "getMethodCallArgsRegex");
+			
+			Element VAR_SING = new NormalElement("varSing", "normalizeVariable",   "getVarRegex");
+			Element VAR_ARR = new NormalElement("varArr", "normalizeVariableArray",   "getVarArrayRegex");
+			VAR = new OrElement("var", VAR_SING, VAR_ARR);
+			
 			Element LIT_NUM = new NormalElement("lit_num", "normalizeLiteralNumber", "getLitNumRegex");
 			Element LIT_STRING = new NormalElement("lit_string", "normalizeLiteralString", "getLitStringRegex");
 			Element LIT_BOOL = new NormalElement("lit_bool", "normalizeLiteralBoolean", "getLitBoolRegex");
 			LIT = new OrElement("lit", LIT_NUM, LIT_STRING, LIT_BOOL);
 			VAL1   = new OrElement("val1", LIT, VAR, STRING, METHOD_CALL);
-			VAL    = new OrElement("val", VAL1, COMP, METHOD_CALL_ARGS);
+			VAL    = new OrElement("val", METHOD_CALL_ARGS, COMP, VAL1, COMP);
 			STRING1 = new OrElement("string1", LIT_STRING, VAR);
 		} catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
@@ -77,6 +80,13 @@ public class Regex {
 		str = str.replace("\"", "u0029");
 		return str;
 	}
+	
+	public static String getVarArrayRegex(String str){
+		return "(?<"+str+">((the )|(The ))?(?<"+str+"Number>\\d+)((st)|(nd)|(rd)|(th)) of "+getVarRegex(str+"Var")+")";
+	}
+	public static String normalizeVariableArray(String str, Matcher matcher, String head){
+		return VAR.norm(matcher.group(head+"Var"))+"["+matcher.group(head+"Number")+"]";
+	}
 
 	public static String getTypeRegex(String str){
 		return "(?<"+str+">(a |the |an )*((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))(s|es)*)";
@@ -95,8 +105,8 @@ public class Regex {
 		str = str.replace("character", "char");
 		str = str.replace("letter", "char");
 		str = str.replace("nothing", "void");
-		str = str.replace("es", "[]");
-		str = str.replace("s", "[]");
+		str = str.replace("es\\z", "[]");
+		str = str.replaceAll("s\\z", "[]");
 		return str;
 	}
 	
@@ -132,15 +142,6 @@ public class Regex {
 	public static String normalizeLiteralNothing(String str, Matcher matcher, String head){
 		return "void";
 	}
-	/*
-	public static String getMethodCallArgsRegex(String str){
-		String head = str+"XMethodcallargs";
-		return "(?<"+str+">the result of "+VAR.get(head+"Method1")+")";
-	}
-	public static String normalizeMethodCallArgs(String str, Matcher matcher, String head){
-		return VAR.norm(matcher.group(head+"XMethodcallMethod1"))+"()";
-	}
-	*/
 	
 	public static String getMethodCallRegex(String str){
 		String head = str+"XMethodcall";
@@ -245,7 +246,7 @@ public class Regex {
 	
 	private static String getMethodCallArgs3Regex(String str){
 		String head = str+"XMethodCallArgs3";
-		return "(?<"+str+">(the result of )?"+Regex.VAR.get(head+"MethodName")+" using "+getMethodCallArgs1Regex(head+"Call1")+
+		return "(?<"+str+">the result of "+Regex.VAR.get(head+"MethodName")+" using "+getMethodCallArgs1Regex(head+"Call1")+
 				getMethodCallArgs2Regex(head, ARGS_DEPTH-2)+")";
 	}
 	private static String normalizeMethodCallArgs3(String str, Matcher matcher){

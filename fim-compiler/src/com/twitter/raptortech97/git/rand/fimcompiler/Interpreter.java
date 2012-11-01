@@ -31,11 +31,13 @@ public class Interpreter {
 					Regex.TYPE.get("returnType")+Regex.PUNC;
 			String regexMethodStartArgs = getMethodStartArgs3Regex();
 			String regexMethodEnd = "That's( all)? about (how to )?"+Regex.VAR.get("methodName")+Regex.PUNC;
-			String regexMethodCall =  "I ((remembered)|(did)|(would)) "+Regex.VAR.get("methodName")+Regex.PUNC;
-			String regexMethodCallArgs =  "I ((remembered)|(did)|(would)) "+Regex.METHOD_CALL_ARGS.get("method")+Regex.PUNC;
-			String regexVarDecType = "Did you know that "+Regex.VAR.get("varName")+" (is|are|was|were) "+
+			String regexMethodCall = "I ((remembered)|(did)|(would)) "+Regex.VAR.get("methodName")+Regex.PUNC;
+			String regexMethodCallArgs = "I ((remembered)|(did)|(would)) "+Regex.METHOD_CALL_ARGS.get("method")+Regex.PUNC;
+			String regexVarDecType = "Did you know that "+Regex.VAR.get("varName")+" ((is)|(are)|(was)|(were)|(has)|(had)) "+
 					Regex.TYPE.get("typeName")+Regex.PUNC;
-			String regexVarDecVal =  "Did you know that "+Regex.VAR.get("varName")+" (is|are|was|were) "+
+			String regexVarDecArr = "Did you know that "+Regex.VAR.get("varName")+" ((is)|(are)|(was)|(were)|(has)|(had)) "+
+					"(?<number>\\d+) "+Regex.TYPE.get("typeName")+Regex.PUNC;
+			String regexVarDecVal =  "Did you know that "+Regex.VAR.get("varName")+" ((is)|(are)|(was)|(were)) "+
 					Regex.TYPE.get("typeName")+" "+Regex.VAL.get("val")+Regex.PUNC;
 			String regexVarReAssign =  "(Did you know that )?"+Regex.VAR.get("varName")+" (then )?became (whether )?"+
 					Regex.VAL.get("val")+Regex.PUNC;
@@ -59,9 +61,10 @@ public class Interpreter {
 			interpreters.add(new InterpretElement("normalizeMethodStartReturn", regexMethodStartReturn));
 			interpreters.add(new InterpretElement("normalizeMethodStart",       regexMethodStart));
 			interpreters.add(new InterpretElement("normalizeMethodEnd",         regexMethodEnd));
-			interpreters.add(new InterpretElement("normalizeMethodCall",        regexMethodCall));
 			interpreters.add(new InterpretElement("normalizeMethodCallArgs",    regexMethodCallArgs));
+			interpreters.add(new InterpretElement("normalizeMethodCall",        regexMethodCall));
 			interpreters.add(new InterpretElement("normalizeVarDecType",        regexVarDecType));
+			interpreters.add(new InterpretElement("normalizeVarDecArr",         regexVarDecArr));
 			interpreters.add(new InterpretElement("normalizeVarDecVal",         regexVarDecVal));
 			interpreters.add(new InterpretElement("normalizeVarReAssign",       regexVarReAssign));
 			interpreters.add(new InterpretElement("normalizeVarMod",            regexVarMod));
@@ -134,6 +137,12 @@ public class Interpreter {
 	}
 	public static String normalizeVarDecType(String text, Matcher matcher){
 		return Regex.TYPE.norm(matcher.group("typeName"))+" "+Regex.VAR.norm(matcher.group("varName"))+";";
+	}
+	String regexVarDecArr = "Did you know that "+Regex.VAR.get("varName")+" ((is)|(are)|(was)|(were)|(has)|(had)) "+
+			"(?<number>\\d+) "+Regex.TYPE.get("typeName")+Regex.PUNC;
+	public static String normalizeVarDecArr(String text, Matcher matcher){
+		return Regex.TYPE.norm(matcher.group("typeName"))+" "+Regex.VAR.norm(matcher.group("varName"))+" = new "+
+				Regex.TYPE.norm(matcher.group("typeName")).replace("[]", "["+matcher.group("number")+"]")+";";
 	}
 	public static String normalizeVarDecVal(String text, Matcher matcher){
 		return Regex.TYPE.norm(matcher.group("typeName"))+" "+Regex.VAR.norm(matcher.group("varName"))+
