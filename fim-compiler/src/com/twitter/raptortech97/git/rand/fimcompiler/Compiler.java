@@ -33,12 +33,6 @@ public class Compiler {
 		Regex.setup();
 		Interpreter.setup();
 		
-		String pattern = Regex.METHOD_CALL_ARGS.get("base");
-		String test = "_X_ became the result of _sum a set of numbers_ with _book_.";
-		test = "_X_ became the result of _sum of three numbers_ using 3 and 5 and 7.";
-		System.out.println(Interpreter.interpretLine(test));
-		System.out.println();
-		
 		File fimFile = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
 		File javaFile = interpret(fimFile); // Interpret FiM++ into Java
 		File classFile = compile(javaFile); // Compile Java into bytecode
@@ -113,4 +107,6 @@ public class Compiler {
 		}
 	}
 
+	//private static String beginning = "\s*";
+	public static int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE;
 }

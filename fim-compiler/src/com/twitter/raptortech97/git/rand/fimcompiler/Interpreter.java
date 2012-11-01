@@ -46,7 +46,7 @@ public class Interpreter {
 			String regexVarModPrompt = Regex.PRONOUN+" (asked) "+Regex.VAR.get("var")+" "+Regex.STRING.get("prompt")+
 					Regex.PUNC;
 			String regexIfStart = "((If)|(When)) "+Regex.VAL.get("bool")+"( then)?"+Regex.PUNC;
-			String regexWhileStart = "((As long as)|(While)) "+Regex.VAL.get("bool")+Regex.PUNC;
+			String regexWhileStart = "((While)|(As long as)) "+Regex.VAL.get("bool")+Regex.PUNC;
 			String regexElseIf = "((Otherwise)|(Or else)) ((if)|(when)) "+Regex.VAL.get("bool")+"( then)?"+Regex.PUNC;
 			String regexElse = "((Otherwise)|(Or else))"+Regex.PUNC;
 			String regexIfEnd = "That"+Regex.APOSTROPHE+"s what I ((did)|(would do))"+Regex.PUNC;

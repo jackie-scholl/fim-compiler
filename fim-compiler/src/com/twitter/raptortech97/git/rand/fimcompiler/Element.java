@@ -7,6 +7,8 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
+
 interface Element{
 	public String get(String str);
 	public String norm(String str);
@@ -35,7 +37,7 @@ class OrElement implements Element{
 	public String norm(String str){
 		String head = name+rand()+"norm";
 		for(Element e : subs){
-			Matcher matcher = Pattern.compile(e.get(head)).matcher(str);
+			Matcher matcher = Pattern.compile(e.get(head), Compiler.PATTERN_FLAGS).matcher(str);
 			if(matcher.matches())
 				return e.norm(str, matcher, head);
 		}
@@ -70,8 +72,10 @@ class NormalElement implements Element{
 	public NormalElement(Method normalize, Method getRegex){
 		this("name", normalize, getRegex);
 	}
-	public NormalElement(String name, String normalize, String getRegex, Class<?> cls) throws NoSuchMethodException, SecurityException{
-		this(name, cls.getMethod(normalize, String.class, Matcher.class, String.class), cls.getMethod(getRegex, String.class));
+	public NormalElement(String name, String normalize, String getRegex, Class<?> cls) throws NoSuchMethodException,
+			SecurityException{
+		this(name, cls.getMethod(normalize, String.class, Matcher.class, String.class), cls.getMethod(getRegex,
+				String.class));
 	}
 	public NormalElement(String name, String normalize, String getRegex) throws NoSuchMethodException, SecurityException{
 		this(name, normalize, getRegex, Regex.class);
@@ -110,7 +114,6 @@ class NormalElement implements Element{
 class InterpretElement{
 	private Method norm;
 	private Pattern regex;
-	
 	public InterpretElement(Method normalize, Pattern getRegex){
 		norm = normalize;
 		this.regex = getRegex;
@@ -119,7 +122,7 @@ class InterpretElement{
 	}
 	public InterpretElement(String normalize, String getRegex) throws NoSuchMethodException, SecurityException{
 		this(Interpreter.class.getMethod(normalize, String.class, Matcher.class), Pattern.compile(getRegex, 
-				Pattern.CASE_INSENSITIVE));
+				Compiler.PATTERN_FLAGS));
 	}
 	public String norm(String str){
 		Matcher matcher = regex.matcher(str);

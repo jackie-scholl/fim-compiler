@@ -26,15 +26,50 @@ System.out.println(X);
 // _test_ then became whether 4000 was greater than the result of the _sum of everything from one to n_ using 100?
 // I said _test_.
 
+double n=2;
 double[] book = new double[10];
-book[1] = 10;
-book[2] = 13;
-book[7] = 3;
+book[(int)0] = 6;
+book[(int)1] = 10;
+book[(int)n] = -8;
+book[(int)3] = -2;
 X = sum_a_set_of_numbers(book);
 System.out.println(X);
+System.out.println(" ");
+find_all_three_sums(book,4);
+System.out.println(" ");
 
 perform_Applejacku0027s_Drinking_Song();
 
+}
+
+
+public static void find_all_three_sums(double[] X,double length){
+double first_counter=0;
+double second_counter=0;
+double third_counter=0;
+double temp=0;
+
+while(first_counter<length){
+while(second_counter<length){
+while(third_counter<length){
+
+double sum=0;
+sum += X[(int)first_counter];
+sum += X[(int)second_counter];
+sum += X[(int)third_counter];
+
+//When the _sum_ was 0:
+System.out.println(X[(int)first_counter]);
+System.out.println(X[(int)second_counter]);
+System.out.println(X[(int)third_counter]);
+//That's what I would do.
+
+third_counter += 1;
+}
+second_counter += 1;
+}
+first_counter += 1;
+}
 }
 
 
@@ -85,8 +120,8 @@ System.out.println("No more jugs of cider on the wall, no more jugs of cider. Go
 
 public static double sum_a_set_of_numbers(double[] X){
 double sum=0;
-sum += X[1];
-sum += X[2];
+sum += X[(int)1];
+sum += X[(int)2];
 return sum;
 }
 
