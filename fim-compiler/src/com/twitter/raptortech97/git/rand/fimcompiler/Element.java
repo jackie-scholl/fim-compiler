@@ -7,8 +7,6 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-
 interface Element{
 	public String get(String str);
 	public String norm(String str);
