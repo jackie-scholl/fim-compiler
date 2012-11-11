@@ -2,148 +2,133 @@ package com.twitter.raptortech97.git.rand.fimcompiler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-
 interface Element{
-	public String get(String str);
+	public String getName();
+	public String getSimple();
 	public String norm(String str);
-	public String norm(String str, Matcher matcher, String head);
-}
-
-class OrElement implements Element{
-	private Element[] subs;
-	private String name;
-	private static Random RAND = new Random();
-	public OrElement(String name, Element...elements){
-		subs = elements;
-		this.name = name;
-	}
-	public String get(String str){
-		String head = name+rand()+"get";
-		String s = "";
-		for(int i=0; i<subs.length; i++){
-			Element e = subs[i];
-			s += "|"+e.get(head+"Set"+i);
-		}
-		s = s.substring(1); // Removes the initial "|"
-		return "(?<"+str+">("+s+"))";
-	}
-	
-	public String norm(String str){
-		String head = name+rand()+"norm";
-		for(Element e : subs){
-			Matcher matcher = Pattern.compile(e.get(head), Compiler.PATTERN_FLAGS).matcher(str);
-			if(matcher.matches())
-				return e.norm(str, matcher, head);
-		}
-		return null;
-	}
-	public String norm(String str, Matcher matcher, String head) {
-		return norm(str);
-	}
-	public String toString(){
-		return "Name: "+name;
-	}
-	
-	private static long rand(){
-		return Math.abs(RAND.nextLong());
-	}
 }
 
 class NormalElement implements Element{
-	protected Method norm;
-	protected Method regex;
-	protected static String head = "element";
-	protected String name;
-	public NormalElement(String name, Method normalize, Method getRegex){
+	private String name;
+	private Method norm;
+	private String simple;
+	private Pattern regex;
+	
+	private NormalElement(String nameIn, String simpleIn, Pattern regexIn, Method normalize){
+		name = nameIn;
+		simple = simpleIn;
+		regex = regexIn;
 		norm = normalize;
-		regex = getRegex;
-		this.name = name;
 		assert norm.getReturnType() == String.class;
-		assert regex.getReturnType() == String.class;
-		assert Arrays.deepEquals(norm.getParameterTypes(), new Class[]{String.class, Matcher.class, String.class});
-		assert Arrays.deepEquals(regex.getParameterTypes(), new Class[]{String.class});
+		assert Arrays.deepEquals(norm.getParameterTypes(), new Class[]{Matcher.class});
 	}
-	public NormalElement(Method normalize, Method getRegex){
-		this("name", normalize, getRegex);
+	private NormalElement(String name, String simpleIn, String regexIn, Method normalize){
+		this(name, simpleIn, Regex.myPatternCompile(regexIn), normalize);
 	}
-	public NormalElement(String name, String normalize, String getRegex, Class<?> cls) throws NoSuchMethodException,
+	
+	public NormalElement(String name, String simpleIn, String regexIn, String normalize, Class<?> cls) throws
+				NoSuchMethodException,	SecurityException{
+		this(name, simpleIn, regexIn, cls.getMethod(normalize, Matcher.class));
+	}
+	public NormalElement(String name, String simpleIn, String regexIn, String normalize) throws NoSuchMethodException, SecurityException{
+		this(name, simpleIn, regexIn, normalize, Regex.class);
+	}
+	/*
+	public NormalElement(String simpleIn, String regexIn, Class<?> cls, String normalize) throws NoSuchMethodException,
 			SecurityException{
-		this(name, cls.getMethod(normalize, String.class, Matcher.class, String.class), cls.getMethod(getRegex,
-				String.class));
+		this("name", simpleIn, regexIn, cls, normalize);
 	}
-	public NormalElement(String name, String normalize, String getRegex) throws NoSuchMethodException, SecurityException{
-		this(name, normalize, getRegex, Regex.class);
+	*/
+	/*
+	public NormalElement(String simpleIn, String regexIn, String normalize) throws NoSuchMethodException, SecurityException{
+		this("name", simpleIn, regexIn, normalize, Regex.class);
 	}
-	public NormalElement(String normalize, String getRegex) throws NoSuchMethodException, SecurityException{
-		this("name", normalize, getRegex, Regex.class);
+	*/
+	
+	public String getSimple(){
+		return simple;
 	}
-	public String get(String str){
-		try {
-			return (String) regex.invoke(null, str);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		return "Invocation failure";
-	}
+	
 	public String norm(String str){
-		String pattern = get(head);
-		Matcher matcher = Pattern.compile(pattern).matcher(str);
+		Matcher matcher = regex.matcher(str);
 		if(matcher.matches())
-			return (String) this.norm(str, matcher, head);
+			return (String) this.norm(matcher);
 		return null;
 	}
-	public String norm(String str, Matcher matcher, String head) {
+	public String norm(Matcher matcher) {
 		try {
-			return (String) norm.invoke(null, str, matcher, head);
+			return (String) norm.invoke(null, matcher);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
 		return "Invocation failure";
+	}
+	
+	public String getName(){
+		return name;	
 	}
 	public String toString(){
 		return "Name: "+name;
 	}
 }
 
-class InterpretElement{
-	private Method norm;
-	private Pattern regex;
-	public InterpretElement(Method normalize, Pattern getRegex){
-		norm = normalize;
-		this.regex = getRegex;
-		assert norm.getReturnType() == String.class;
-		assert Arrays.deepEquals(norm.getParameterTypes(), new Class[]{String.class, Matcher.class});
+class OrElement implements Element{
+	private List<Element> subs;
+	private String name;
+	private String simple;
+	private boolean auto=true;
+	public OrElement(String name, String simpleIn, Element... elements){
+		this.name = name;
+		this.simple = simpleIn;
+		auto=false;
+		subs = new ArrayList<Element>();
+		for(Element e : elements)
+			subs.add(e);
 	}
-	public InterpretElement(String normalize, String getRegex) throws NoSuchMethodException, SecurityException{
-		this(Interpreter.class.getMethod(normalize, String.class, Matcher.class), Pattern.compile(getRegex, 
-				Compiler.PATTERN_FLAGS));
+	public OrElement(String name, Element...elements){
+		this(name, null, elements);
+		makeSimple();
+	}
+	public void addElement(Element e){
+		subs.add(e);
+		if(auto)
+			makeSimple();
+	}
+	public void addElements(Element... elements){
+		for(Element e : elements)
+			addElement(e);
+	}
+	private void makeSimple(){
+		simple = "(";
+		for(Element e : subs){
+			simple += "("+e.getSimple()+")|";
+		}
+		simple = simple.substring(0, simple.length()-1);
+		simple += ")";
+	}
+	
+	public String getSimple(){
+		return simple;
 	}
 	public String norm(String str){
-		Matcher matcher = regex.matcher(str);
-		if(matcher.matches())
-			return (String) this.norm(str, matcher);
+		for(Element e : subs){
+			String temp = e.norm(str);
+			if(temp != null)
+				return temp;
+		}
 		return null;
 	}
-	public String norm(String str, Matcher matcher) {
-		try {
-			return (String) norm.invoke(null, str, matcher);
-		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			System.err.println(this);
-			e.printStackTrace();
-		}
-		return "Invocation failure";
-	}
-	public int getLength(){
-		return regex.pattern().length();
+	public String getName(){
+		return name;	
 	}
 	public String toString(){
-		return "Norm: "+norm+Compiler.LINEBREAK+"Regex: "+regex;
+		return "Name: "+name;
 	}
 }

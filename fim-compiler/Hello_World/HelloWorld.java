@@ -45,24 +45,22 @@ perform_Applejacku0027s_Drinking_Song();
 
 public static void find_all_three_sums(double[] X,double length){
 double first_counter=0;
-double second_counter=0;
-double third_counter=0;
-double temp=0;
-
 while(first_counter<length){
+double second_counter=0;
 while(second_counter<length){
+double third_counter=0;
 while(third_counter<length){
+
+//I said _first counter_" "_second counter_" "_third counter_.
 
 double sum=0;
 sum += X[(int)first_counter];
 sum += X[(int)second_counter];
 sum += X[(int)third_counter];
 
-//When the _sum_ was 0:
-System.out.println(X[(int)first_counter]);
-System.out.println(X[(int)second_counter]);
-System.out.println(X[(int)third_counter]);
-//That's what I would do.
+if(sum==0){
+System.out.println(X[(int)first_counter]+","+X[(int)second_counter]+","+X[(int)third_counter]);
+}
 
 third_counter += 1;
 }
