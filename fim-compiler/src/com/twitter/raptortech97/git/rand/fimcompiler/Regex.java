@@ -79,15 +79,14 @@ public class Regex {
 		return new NormalElement(norm.replaceAll("Norm\\z", ""), simple, regex, norm, Regex.class);
 	}
 	
-	public static String getSimpleByName(String str){
+	private static String getSimpleByName(String str){
 		Element[] elements = new Element[]{ARTICLE, CLASS, VAR, VAR_NAME, VAR_ARR, TYPE, LIT, VAL, OP, COMP, STRING_BASE,
 				STRING, METHOD_CALL};
 		for(Element e : elements){
-			if(e != null){
-				if(e.getName().equals(str))
+			if((e != null) && e.getName().equals(str))
 					return e.getSimple();
-			}
 		}
+		System.out.println("Failed.");
 		return null;
 	}
 	
@@ -95,27 +94,27 @@ public class Regex {
 		String pattern = "\\(\\?<simple=(?<name>[a-zA-Z]+?)>\\)";
 		Matcher matcher = Pattern.compile(pattern, FLAGS).matcher(str);
 		while(matcher.find()){
-			String s = Matcher.quoteReplacement(getSimpleByName(matcher.group("name")));
-			str = matcher.replaceFirst(s);
+			String s = getSimpleByName(matcher.group("name"));
+			str = matcher.replaceFirst(Matcher.quoteReplacement(s));
 			matcher = Pattern.compile(pattern, FLAGS).matcher(str);
 		}
 		return Pattern.compile(str, FLAGS);
 	}
 
-	public static String articleSimple = "(((a )|(an )|(the ))?)";
-	public static String articleRegex = "((a )|(an )|(the ))?";
+	private static String articleSimple = "(((a )|(an )|(the ))?)";
+	private static String articleRegex = "((a )|(an )|(the ))?";
 	public static String articleNorm(Matcher matcher){
 		return "";
 	}
 	
-	public static String classNameSimple = "([A-Z]+[\\w ]*)";
-	public static String classNameRegex = "([A-Z]+[\\w ]*)";
+	private static String classNameSimple = "([A-Z]+[\\w ]*)";
+	private static String classNameRegex = "([A-Z]+[\\w ]*)";
 	public static String classNameNorm(Matcher matcher){
 		return matcher.group().replace(" ", "_");  // Replace all spaces with underscores in class names.
 	}
 	
-	public static String varNameSimple = "(?<simple=article>)??_([\\w ']+?)_";
-	public static String varNameRegex = "(?<simple=article>)??_(?<Name>[\\w ']+?)_";
+	private static String varNameSimple = "(?<simple=article>)??_([\\w ']+?)_";
+	private static String varNameRegex = "(?<simple=article>)??_(?<Name>[\\w ']+?)_";
 	public static String varNameNorm(Matcher matcher){
 		String str = matcher.group("Name");
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in variable names.
@@ -124,14 +123,14 @@ public class Regex {
 		return str;
 	}
 	
-	public static String arraySimple = "((?<simple=article>)(?<simple=val>)((st)|(nd)|(rd)|(th))? of (?<simple=varName>))";
-	public static String arrayRegex = "((?<simple=article>)(?<Index>(?<simple=val>))((st)|(nd)|(rd)|(th))? of (?<arrName>(?<simple=varName>)))";
+	private static String arraySimple = "((?<simple=article>)(?<simple=val>)((st)|(nd)|(rd)|(th))? of (?<simple=varName>))";
+	private static String arrayRegex = "((?<simple=article>)(?<Index>(?<simple=val>))((st)|(nd)|(rd)|(th))? of (?<arrName>(?<simple=varName>)))";
 	public static String arrayNorm(Matcher matcher){
 		return VAR.norm(matcher.group("arrName"))+"[(int)"+VAL.norm(matcher.group("Index"))+"]";
 	}
 
-	public static String typeSimple = "(?<simple=article>)((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))(s|es)*";
-	public static String typeRegex = "(?<simple=article>)(?<type>(((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))((s)|(es))?))";
+	private static String typeSimple = "(?<simple=article>)((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))(s|es)*";
+	private static String typeRegex = "(?<simple=article>)(?<type>(((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))((s)|(es))?))";
 	public static String typeNorm(Matcher matcher){
 		String str = matcher.group("type");
 		if(str.startsWith("a "))
@@ -152,8 +151,8 @@ public class Regex {
 		return str;
 	}
 	
-	public static String litBoolSimple = "((true)|(false)|(correct)|(incorrect))";
-	public static String litBoolRegex = "((true)|(false)|(correct)|(incorrect))";
+	private static String litBoolSimple = "((true)|(false)|(correct)|(incorrect))";
+	private static String litBoolRegex = "((true)|(false)|(correct)|(incorrect))";
 	public static String litBoolNorm(Matcher matcher){
 		String str = matcher.group();
 		if(str.equals("true") || str.equals("correct"))
@@ -163,26 +162,20 @@ public class Regex {
 		return null;
 	}
 	
-	public static String litStringSimple = QUOTE_MARK+"((?s).+?)"+QUOTE_MARK;
-	public static String litStringRegex = "(?<Qm>"+QUOTE_MARK+")(?<Quote>(?s).+?)\\k<Qm>";
+	private static String litStringSimple = QUOTE_MARK+"((?s).+?)"+QUOTE_MARK;
+	private static String litStringRegex = "(?<Qm>"+QUOTE_MARK+")(?<Quote>(?s).+?)\\k<Qm>";
 	public static String litStringNorm(Matcher matcher){
 		return "\""+matcher.group("Quote")+"\"";
 	}
 
-	public static String litNumSimple = "([-\\+\\d\\.]+)";
-	public static String litNumRegex = "((-)|(\\+))?\\d+(\\.\\d+)?";
+	private static String litNumSimple = "([-\\+\\d\\.]+)";
+	private static String litNumRegex = "((-)|(\\+))?\\d+(\\.\\d+)?";
 	public static String litNumNorm(Matcher matcher){
 		return matcher.group();
 	}
 	
-	public static String litNothingSimple = "nothing";
-	public static String litNothingRegex = "nothing";
-	public static String litNothingNorm(Matcher matcher){
-		return "void";
-	}
-	
-	public static String methodCallSimple = "(the result of )?(?<simple=varName>)( using (?<simple=val>)( and (?<simple=val>))*?)??";
-	public static String methodCallRegex = "the result of (?<methodName>(?<simple=varName>))( using (?<arg0>(?<simple=val>))"+
+	private static String methodCallSimple = "(the result of )?(?<simple=varName>)( using (?<simple=val>)( and (?<simple=val>))*?)??";
+	private static String methodCallRegex = "the result of (?<methodName>(?<simple=varName>))( using (?<arg0>(?<simple=val>))"+
 			"(?<otherArgs>( and (?<simple=val>))*?))?";
 	private static String argsPattern = " and (?<curArg>(?<simple=val>))(?<otherArgs>( and (?<simple=val>))*?)";
 	public static String methodCallNorm(Matcher matcher){
@@ -253,19 +246,6 @@ public class Regex {
 		String val1 = matcher.group("val1");
 		String val2 = matcher.group("val2");
 		return VAL.norm(val1)+s+VAL.norm(val2);
-	}
-
-	private static String stringBaseSimple = "((?<simple=litString>)|(?<simple=val>))";
-	private static String stringBaseRegex = "((?<simple=litString>)|(?<simple=val>))";
-	public static String stringBaseNorm(Matcher matcher){
-		String str = matcher.group();
-		String res = LIT_STRING.norm(str);
-		if(res != null)
-			return res;
-		res = VAL.norm(str);
-		if(res != null)
-			return res;
-		return null;
 	}
 	
 	private static String stringSimple = "(?<simple=stringBase>)+?";

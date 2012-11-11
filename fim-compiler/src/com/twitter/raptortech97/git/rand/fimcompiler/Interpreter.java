@@ -16,11 +16,6 @@ import java.util.regex.Matcher;
 
 public class Interpreter {
 	private static List<Element> interpreters;
-	//private static int ARGS_DEPTH = 5;
-	//String regexMethodStartArgs = getMethodStartArgs3Regex();
-	private static Map<String, String> simple;
-	private static Map<String, String> regex;
-	private static Map<String, String> norm;
 
 	public static void setup(){
 		interpreters = new ArrayList<Element>();
@@ -76,8 +71,8 @@ public class Interpreter {
 		return "//"+matcher.group("comment");
 	}
 
-	private static String classDecSimple = "Dear (?<simple=class>): (?<simple=class>)";
-	private static String classDecRegex = "Dear (?<super>(?<simple=class>)): (?<name>(?<simple=class>))";
+	private static String classDecSimple = "Dear (?<simple=className>): (?<simple=className>)";
+	private static String classDecRegex = "Dear (?<super>(?<simple=className>)): (?<name>(?<simple=className>))";
 	public static String classDecNorm(Matcher matcher){
 		return "public class "+Regex.CLASS.norm(matcher.group("name"))+" extends "+Regex.CLASS.norm(matcher.group("super"))+"{";
 	}
@@ -97,8 +92,8 @@ public class Interpreter {
 	private static String methodStartArgsSimple = "I learned( how to)? (?<simple=varName>)( with (?<simple=type>) " +
 			"(?<simple=val>)( and (?<simple=type>) (?<simple=var>))*?)?( to get (?<simple=type>))?";
 	private static String methodStartArgsRegex = "I learned( how to)? (?<methodName>(?<simple=varName>))( with " +
-			"(?<arg0Type>(?<simple=type>)) (?<arg0Name>(?<simple=var>))(?<otherArgs>( and (?<simple=type>) (?<simple=val>))*?))?"+
-			"( to get (?<returnType>(?<simple=type>)))?";
+			"(?<arg0Type>(?<simple=type>)) (?<arg0Name>(?<simple=var>))(?<otherArgs>( and (?<simple=type>) " +
+			"(?<simple=val>))*?))?( to get (?<returnType>(?<simple=type>)))?";
 	private static String argsPattern = " and (?<curType>(?<simple=type>)) (?<curName>(?<simple=var>))" +
 			"(?<otherArgs>( and (?<simple=val>))*?)";
 	public static String methodStartArgsNorm(Matcher matcher){
@@ -125,12 +120,6 @@ public class Interpreter {
 		return res;
 	}
 	
-	private static String methodStartSimple = "I learned( how to)? (?<simple=var>)";
-	private static String methodStartRegex = "I learned( how to)? (?<methodName>(?<simple=var>))";
-	public static String methodStartNorm(Matcher matcher){
-		return "public static void "+Regex.VAR.norm(matcher.group("methodName"))+"(){";
-	}
-	
 	private static String methodEndSimple = "That's( all)? about( how to)? (?<simple=var>)";
 	private static String methodEndRegex = "That's( all)? about( how to)? (?<methodName>(?<simple=var>))";
 	public static String methodEndNorm(Matcher matcher){
@@ -153,8 +142,8 @@ public class Interpreter {
 	
 	private static String varDecArrSimple = "Did you know that (?<simple=varName>) ((is)|(are)|(was)|(were)|(has)|(had)) "+
 			"(\\d+) (?<simple=type>))";
-	private static String varDecArrRegex = "Did you know that (?<varName>(?<simple=varName>)) ((is)|(are)|(was)|(were)|(has)|(had)) "+
-			"(?<number>\\d+) (?<typeName>(?<simple=type>))";
+	private static String varDecArrRegex = "Did you know that (?<varName>(?<simple=varName>)) ((is)|(are)|(was)|(were)|" +
+			"(has)|(had)) (?<number>\\d+) (?<typeName>(?<simple=type>))";
 	public static String varDecArrNorm(Matcher matcher){
 		return Regex.TYPE.norm(matcher.group("typeName"))+" "+Regex.VAR.norm(matcher.group("varName"))+" = new "+
 				Regex.TYPE.norm(matcher.group("typeName")).replace("[]", "["+matcher.group("number")+"]")+";";

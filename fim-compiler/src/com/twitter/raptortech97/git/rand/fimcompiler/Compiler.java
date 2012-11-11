@@ -18,20 +18,18 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 import javax.tools.*;
 
 public class Compiler {
 	public static final File CELESTIA = new File("src//com//twitter//raptortech97//git//rand//fimcompiler//Princess_Celestia.java");
-	public static final String LINEBREAK = System.getProperty("line.separator");
+	//public static final String LINEBREAK = System.getProperty("line.separator");
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException,
 	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		Regex.setup();
 		Interpreter.setup();
-		
 		
 		File fimFile = new File("Hello_World", "HelloWorld.fim");
 		File javaFile = interpret(fimFile); // Interpret FiM++ into Java
@@ -84,7 +82,7 @@ public class Compiler {
 
 	// Loads a .class file
 	private static Class<?> loadClass(File source) throws ClassNotFoundException, IOException{
-		String name = source.getName().replace(".class", "");		
+		String name = source.getName().replace(".class", "");
 		String[] dirs = new String[]{source.getParent()};
 		URL[] urls = new URL[dirs.length];
 		for(int i=0; i<dirs.length; i++)
