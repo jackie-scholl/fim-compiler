@@ -37,20 +37,7 @@ class NormalElement implements Element{
 				NoSuchMethodException,	SecurityException{
 		this(name, simpleIn, regexIn, cls.getMethod(normalize, Matcher.class));
 	}
-	public NormalElement(String name, String simpleIn, String regexIn, String normalize) throws NoSuchMethodException, SecurityException{
-		this(name, simpleIn, regexIn, normalize, Regex.class);
-	}
-	/*
-	public NormalElement(String simpleIn, String regexIn, Class<?> cls, String normalize) throws NoSuchMethodException,
-			SecurityException{
-		this("name", simpleIn, regexIn, cls, normalize);
-	}
-	*/
-	/*
-	public NormalElement(String simpleIn, String regexIn, String normalize) throws NoSuchMethodException, SecurityException{
-		this("name", simpleIn, regexIn, normalize, Regex.class);
-	}
-	*/
+
 	
 	public String getSimple(){
 		return simple;

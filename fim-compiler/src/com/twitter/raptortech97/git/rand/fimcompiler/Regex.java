@@ -17,7 +17,7 @@ public class Regex {
 	public static String QUOTE_MARK = "[\\u0022\\u0027\\u0029\\u2018\\u2019\\u201C\\u201D]";
 	public static String APOSTROPHE = "[\\u0027\\u2019\\u02BC\\u2019]";
 	public static String COMMA = "(\\u002C|\\uFE10|\\uFE11|\\uFE50|\\uFE51|\\uFF0C)";
-	public static String PUNC = "[,:\\?\\.\\!"+COMMA+"]";
+	public static String PUNC = "[,:\\?\\.!\\!"+COMMA+"]";
 	public static String PRONOUN = "((I)|(you)|(he)|(she)|(we)|(ya'll)|(they))";
 	//private static int STR_DEPTH = 10; // Determines the maximum allowed number of strings to be concatenated at once. Higher values run slower.
 	//private static int ARGS_DEPTH = 10;
@@ -180,24 +180,6 @@ public class Regex {
 	public static String litNothingNorm(Matcher matcher){
 		return "void";
 	}
-	
-	/*
-	private static String argsSimple = "( using (?<simple=val>)( and (?<simple=val>))*?)??";
-	private static String argsRegex = "( using (?<arg0>(?<simple=val>))(?<otherArgs>( and (?<simple=val>))*?))??";
-	public static String argsNorm(Matcher matcher){
-		String res = "(";
-		if(matcher.group("arg0") == null)
-			res += VAL.norm(matcher.group("arg0"));
-		String args = matcher.group("otherArgs");
-		while(args != null){
-			Matcher m = Pattern.compile(argsPattern).matcher(args);
-			res += ","+VAL.norm(m.group("curArg"));
-			args = matcher.group("otherArgs");
-		}
-		res += ")";
-		return res;
-	}
-	*/
 	
 	public static String methodCallSimple = "(the result of )?(?<simple=varName>)( using (?<simple=val>)( and (?<simple=val>))*?)??";
 	public static String methodCallRegex = "the result of (?<methodName>(?<simple=varName>))( using (?<arg0>(?<simple=val>))"+

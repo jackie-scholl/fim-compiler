@@ -24,8 +24,7 @@ import java.util.regex.Pattern;
 import javax.tools.*;
 
 public class Compiler {
-	public static final File CELESTIA = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//src//com//twitter"+
-			"//raptortech97//git//rand//fimcompiler//Princess_Celestia.java");
+	public static final File CELESTIA = new File("src//com//twitter//raptortech97//git//rand//fimcompiler//Princess_Celestia.java");
 	public static final String LINEBREAK = System.getProperty("line.separator");
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException,
@@ -33,7 +32,8 @@ public class Compiler {
 		Regex.setup();
 		Interpreter.setup();
 		
-		File fimFile = new File("C://Users//Jackson//git//fim-compiler//fim-compiler//Hello_World", "HelloWorld.fim");
+		
+		File fimFile = new File("Hello_World", "HelloWorld.fim");
 		File javaFile = interpret(fimFile); // Interpret FiM++ into Java
 		File classFile = compile(javaFile); // Compile Java into bytecode
 		Class<?> cls = loadClass(classFile);   // Load class from bytecode

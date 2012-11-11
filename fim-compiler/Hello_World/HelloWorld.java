@@ -22,9 +22,9 @@ double X;
 X = sum_of_everything_from_one_to_n(3);
 System.out.println(X);
 
-// Did you know that _test_ was the argument true?
-// _test_ then became whether 4000 was greater than the result of the _sum of everything from one to n_ using 100?
-// I said _test_.
+// Did you know that _test_ was the argument true
+// _test_ then became whether 4000 was greater than the result of the _sum of everything from one to n_ using 100
+// I said _test_
 
 double n=2;
 double[] book = new double[10];
@@ -51,7 +51,7 @@ while(second_counter<length){
 double third_counter=0;
 while(third_counter<length){
 
-//I said _first counter_" "_second counter_" "_third counter_.
+//I said _first counter_" "_second counter_" "_third counter_
 
 double sum=0;
 sum += X[(int)first_counter];
@@ -86,7 +86,7 @@ test = current_number<=100;
 return sum;
 }
 
-// This is a comment.
+// This is a comment
 
 public static void perform_Applejacku0027s_Drinking_Song(){
 
@@ -111,7 +111,7 @@ System.out.println("No more jugs of cider on the wall, no more jugs of cider. Go
 }
 
 // Twilight's drunken state truly frightened me, so I couldn't disregard her order to send you this letter. Who would
-// 		have thought her first reaction to hard cider would be this... explosive? I need your advice, your help,
+// 		have thought her first reaction to hard cider would be this... explosive? I need your advice, your help
 // 		everything, on how to deal with her drunk... self. -Spike
 
 }
