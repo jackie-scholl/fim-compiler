@@ -19,11 +19,14 @@ public class Regex {
 	public static String COMMA = "(\\u002C|\\uFE10|\\uFE11|\\uFE50|\\uFE51|\\uFF0C)";
 	public static String PUNC = "[,:\\?\\.\\!"+COMMA+"]";
 	public static String PRONOUN = "((I)|(you)|(he)|(she)|(we)|(ya'll)|(they))";
-	private static int STR_DEPTH = 10; // Determines the maximum allowed number of strings to be concatenated at once. Higher values run slower.
-	private static int ARGS_DEPTH = 10;
+	//private static int STR_DEPTH = 10; // Determines the maximum allowed number of strings to be concatenated at once. Higher values run slower.
+	//private static int ARGS_DEPTH = 10;
 	
+	public static Element ARTICLE;
 	public static Element CLASS;
 	public static Element VAR;
+	public static Element VAR_NAME;
+	public static Element VAR_ARR;
 	public static Element TYPE;
 	public static Element LIT;
 	public static Element VAL;
@@ -31,70 +34,106 @@ public class Regex {
 	public static Element COMP;
 	public static Element STRING;
 	public static Element METHOD_CALL;
-	public static Element METHOD_CALL_ARGS;
 	
-	private static Element STRING1;
-	private static Element VAL1;
-	private static Element VAR_SING;
+	public static Element STRING_BASE;
+	public static Element LIT_STRING;
+	
+	public static String NULL = null;
+	
+	public static int FLAGS = Pattern.CASE_INSENSITIVE;
 	
 	public static void setup(){
 		try {
-			Element LIT_NUM = new NormalElement("lit_num", "normalizeLiteralNumber", "getLitNumRegex");
-			Element LIT_STRING = new NormalElement("lit_string", "normalizeLiteralString", "getLitStringRegex");
-			Element LIT_BOOL = new NormalElement("lit_bool", "normalizeLiteralBoolean", "getLitBoolRegex");
+			VAL = new OrElement("val", "(.+?)");
+			
+			ARTICLE = get(articleSimple, articleRegex, "articleNorm");
+			
+			Element LIT_NUM = get(litNumSimple, litNumRegex, "litNumNorm");
+			LIT_STRING = get(litStringSimple, litStringRegex, "litStringNorm");
+			Element LIT_BOOL = get(litBoolSimple, litBoolRegex, "litBoolNorm");
 			LIT = new OrElement("lit", LIT_NUM, LIT_STRING, LIT_BOOL);
 			
-			CLASS  = new NormalElement("Class", "normalizeClassName",  "getClassRegex");
-			TYPE   = new NormalElement("type", "normalizeType",       "getTypeRegex");
-			OP     = new NormalElement("op", "normalizeOperation",  "getOpRegex");
-			COMP   = new NormalElement("comp", "normalizeComparator", "getCompRegex");
-			METHOD_CALL = new NormalElement("methodCall", "normalizeMethodCall", "getMethodCallRegex");
-			METHOD_CALL_ARGS = new NormalElement("methodCallArgs", "normalizeMethodCallArgs", "getMethodCallArgsRegex");
+			VAR_NAME = get(varNameSimple, varNameRegex, "varNameNorm");
+			VAR_ARR = get(arraySimple, arrayRegex, "arrayNorm");
+			VAR = new OrElement("var", VAR_ARR, VAR_NAME);
 			
-			VAR_SING = new NormalElement("varSing", "normalizeVariable",   "getVarRegex");
-			VAL1   = new OrElement("val1", VAR_SING, LIT, METHOD_CALL);
-			Element VAR_ARR = new NormalElement("varArr", "normalizeVariableArray",   "getVarArrayRegex");
-			VAR = new OrElement("var", VAR_ARR, VAR_SING);
-			STRING1 = new OrElement("string1", LIT_STRING, VAR);
+			CLASS = get(classNameSimple, classNameRegex, "classNameNorm");
+			TYPE = get(typeSimple, typeRegex, "typeNorm");
 			
-			STRING = new NormalElement("string", "normalizeString3",    "getString3Regex");
-			VAL    = new OrElement("val", METHOD_CALL_ARGS, COMP, VAR, STRING, VAL1);
+			COMP = get(compSimple, compRegex, "compNorm");
+			METHOD_CALL = get(methodCallSimple, methodCallRegex, "methodCallNorm");
+			OP = get(opSimple, opRegex, "opNorm");
 			
+			//VAL1   = new OrElement("val1", VAR_NORM, LIT, METHOD_CALL);
+			//STRING_BASE = get(stringBaseSimple, stringBaseRegex, "stringBaseNorm");
+			STRING_BASE = new OrElement("stringBase", LIT_STRING, VAR);
+			STRING = get(stringSimple, stringRegex, "stringNorm");
+			
+			VAL = new OrElement("val", "(.+?)", LIT, METHOD_CALL, COMP, VAR, STRING);
 		} catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static String getClassRegex(String str){
-		return "(?<"+str+">[A-Z]+[\\w ]*)";
+	private static Element get(String simple, String regex, String norm) throws NoSuchMethodException, SecurityException{
+		return new NormalElement(norm.replaceAll("Norm\\z", ""), simple, regex, norm, Regex.class);
 	}
-	public static String normalizeClassName(String str, Matcher matcher, String head){
-		str = str.replace(" ", "_"); // Replace all spaces with underscores in class names.
-		return str;
+	
+	public static String getSimpleByName(String str){
+		Element[] elements = new Element[]{ARTICLE, CLASS, VAR, VAR_NAME, VAR_ARR, TYPE, LIT, VAL, OP, COMP, STRING_BASE,
+				STRING, METHOD_CALL};
+		for(Element e : elements){
+			if(e != null){
+				if(e.getName().equals(str))
+					return e.getSimple();
+			}
+		}
+		return null;
+	}
+	
+	public static Pattern myPatternCompile(String str){
+		String pattern = "\\(\\?<simple=(?<name>[a-zA-Z]+?)>\\)";
+		Matcher matcher = Pattern.compile(pattern, FLAGS).matcher(str);
+		while(matcher.find()){
+			String s = Matcher.quoteReplacement(getSimpleByName(matcher.group("name")));
+			str = matcher.replaceFirst(s);
+			matcher = Pattern.compile(pattern, FLAGS).matcher(str);
+		}
+		return Pattern.compile(str, FLAGS);
 	}
 
-	public static String getVarRegex(String str){
-		return "(?<"+str+">((a )|(an )|(the ))??_(?<"+str+"Name1>[\\w ']+?)_)";
+	public static String articleSimple = "(((a )|(an )|(the ))?)";
+	public static String articleRegex = "((a )|(an )|(the ))?";
+	public static String articleNorm(Matcher matcher){
+		return "";
 	}
-	public static String normalizeVariable(String str, Matcher matcher, String head){
-		str = matcher.group(head+"Name1");
+	
+	public static String classNameSimple = "([A-Z]+[\\w ]*)";
+	public static String classNameRegex = "([A-Z]+[\\w ]*)";
+	public static String classNameNorm(Matcher matcher){
+		return matcher.group().replace(" ", "_");  // Replace all spaces with underscores in class names.
+	}
+	
+	public static String varNameSimple = "(?<simple=article>)??_([\\w ']+?)_";
+	public static String varNameRegex = "(?<simple=article>)??_(?<Name>[\\w ']+?)_";
+	public static String varNameNorm(Matcher matcher){
+		String str = matcher.group("Name");
 		str = str.replace(" ", "_"); // Replace all spaces with underscores in variable names.
 		str = str.replace("'", "u0027");
 		str = str.replace("\"", "u0029");
 		return str;
 	}
 	
-	public static String getVarArrayRegex(String str){
-		return "(?<"+str+">((the )|(The ))?(?<"+str+"Number>"+VAL1.get(str+"number")+")((st)|(nd)|(rd)|(th))? of "+getVarRegex(str+"Var")+")";
-	}
-	public static String normalizeVariableArray(String str, Matcher matcher, String head){
-		return VAR.norm(matcher.group(head+"Var"))+"[(int)"+VAL1.norm(matcher.group(head+"Number"))+"]";
+	public static String arraySimple = "((?<simple=article>)(?<simple=val>)((st)|(nd)|(rd)|(th))? of (?<simple=varName>))";
+	public static String arrayRegex = "((?<simple=article>)(?<Index>(?<simple=val>))((st)|(nd)|(rd)|(th))? of (?<arrName>(?<simple=varName>)))";
+	public static String arrayNorm(Matcher matcher){
+		return VAR.norm(matcher.group("arrName"))+"[(int)"+VAL.norm(matcher.group("Index"))+"]";
 	}
 
-	public static String getTypeRegex(String str){
-		return "(?<"+str+">(a |the |an )*((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))(s|es)*)";
-	}
-	public static String normalizeType(String str, Matcher matcher, String head){
+	public static String typeSimple = "(?<simple=article>)((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))(s|es)*";
+	public static String typeRegex = "(?<simple=article>)(?<type>(((logical)|(argument)|(number)|(name)|(character)|(letter)|(nothing))((s)|(es))?))";
+	public static String typeNorm(Matcher matcher){
+		String str = matcher.group("type");
 		if(str.startsWith("a "))
 			str = str.substring(2);
 		else if(str.startsWith("an "))
@@ -113,61 +152,79 @@ public class Regex {
 		return str;
 	}
 	
-	public static String getLitBoolRegex(String str){
-		return "(?<"+str+">((true)|(false)|(correct)|(incorrect)))";
-	}
-	
-	public static String normalizeLiteralBoolean(String str, Matcher matcher, String head){
+	public static String litBoolSimple = "((true)|(false)|(correct)|(incorrect))";
+	public static String litBoolRegex = "((true)|(false)|(correct)|(incorrect))";
+	public static String litBoolNorm(Matcher matcher){
+		String str = matcher.group();
 		if(str.equals("true") || str.equals("correct"))
 			return "true";
 		else if(str.equals("false") || str.equals("incorrect"))
 			return "false";
 		return null;
 	}
-	public static String normalizeLiteralString(String str, Matcher matcher, String head){
-		return "\""+matcher.group(head+"XLitstringQuote1")+"\"";
-	}	
-	public static String getLitStringRegex(String str){
-		String head = str+"XLitstring";
-		return "(?<"+head+"Qm1>"+QUOTE_MARK+")(?<"+head+"Quote1>(?s).+?)\\k<"+head+"Qm1>";
+	
+	public static String litStringSimple = QUOTE_MARK+"((?s).+?)"+QUOTE_MARK;
+	public static String litStringRegex = "(?<Qm>"+QUOTE_MARK+")(?<Quote>(?s).+?)\\k<Qm>";
+	public static String litStringNorm(Matcher matcher){
+		return "\""+matcher.group("Quote")+"\"";
 	}
 
-	public static String getLitNumRegex(String str){
-		return "(?<"+str+">((-)|(\\+))?\\d+(\\.\\d+)?)";
-	}
-	public static String normalizeLiteralNumber(String str, Matcher matcher, String head){
-		return matcher.group(head);
+	public static String litNumSimple = "([-\\+\\d\\.]+)";
+	public static String litNumRegex = "((-)|(\\+))?\\d+(\\.\\d+)?";
+	public static String litNumNorm(Matcher matcher){
+		return matcher.group();
 	}
 	
-	public static String getLitNothingRegex(String str){
-		return "(?<"+str+">nothing)";
-	}
-	public static String normalizeLiteralNothing(String str, Matcher matcher, String head){
+	public static String litNothingSimple = "nothing";
+	public static String litNothingRegex = "nothing";
+	public static String litNothingNorm(Matcher matcher){
 		return "void";
 	}
 	
-	public static String getMethodCallRegex(String str){
-		String head = str+"XMethodcall";
-		return "(?<"+str+">the result of "+VAR_SING.get(head+"Method1")+")";
+	/*
+	private static String argsSimple = "( using (?<simple=val>)( and (?<simple=val>))*?)??";
+	private static String argsRegex = "( using (?<arg0>(?<simple=val>))(?<otherArgs>( and (?<simple=val>))*?))??";
+	public static String argsNorm(Matcher matcher){
+		String res = "(";
+		if(matcher.group("arg0") == null)
+			res += VAL.norm(matcher.group("arg0"));
+		String args = matcher.group("otherArgs");
+		while(args != null){
+			Matcher m = Pattern.compile(argsPattern).matcher(args);
+			res += ","+VAL.norm(m.group("curArg"));
+			args = matcher.group("otherArgs");
+		}
+		res += ")";
+		return res;
 	}
-	public static String normalizeMethodCall(String str, Matcher matcher, String head){
-		return VAR.norm(matcher.group(head+"XMethodcallMethod1"))+"()";
+	*/
+	
+	public static String methodCallSimple = "(the result of )?(?<simple=varName>)( using (?<simple=val>)( and (?<simple=val>))*?)??";
+	public static String methodCallRegex = "the result of (?<methodName>(?<simple=varName>))( using (?<arg0>(?<simple=val>))"+
+			"(?<otherArgs>( and (?<simple=val>))*?))?";
+	private static String argsPattern = " and (?<curArg>(?<simple=val>))(?<otherArgs>( and (?<simple=val>))*?)";
+	public static String methodCallNorm(Matcher matcher){
+		String res="";
+		res += VAR_NAME.norm(matcher.group("methodName"));
+		res += "(";
+		if(matcher.group("arg0") != null)
+			res += VAL.norm(matcher.group("arg0"));
+		String args = matcher.group("otherArgs");
+		while((args != null)&&(!args.equals(""))){
+			Matcher m = myPatternCompile(argsPattern).matcher(args);
+			m.matches();
+			res += ","+VAL.norm(m.group("curArg"));
+			args = m.group("otherArgs");
+		}
+		res += ")";
+		return res;
 	}
 	
-	public static String getMethodCallArgsRegex(String str){
-		return getMethodCallArgs3Regex(str);
-	}
-	public static String normalizeMethodCallArgs(String str, Matcher matcher, String head){
-		return normalizeMethodCallArgs3(head, matcher);
-	}
-
-	public static String getOpRegex(String str){
-		String head = str+"XOp";
-		return "(?<"+str+">((?<"+head+"Op1>((increas)|(decreas)|(multipli)|(divid)|(and)|(or)|(xor))ed) by )"+
-				VAL.get(head+"Val1")+")";
-	}
-	public static String normalizeOperation(String str, Matcher matcher, String head){
-		String operation = matcher.group(head+"XOpOp1");
+	private static String opSimple = "((increased)|(decreased)|(multiplied)|(divided)|(anded)|(ored)|(xored)) by (?<simple=val>)";
+	private static String opRegex = "(?<Op>(increased)|(decreased)|(multiplied)|(divided)|(anded)|(ored)|(xored)) by " +
+			"(?<val>(?<simple=val>))";
+	public static String opNorm(Matcher matcher){
+		String operation = matcher.group("Op");
 		String s = "?";
 		if(operation.equals("increased"))
 			s = " += ";
@@ -183,17 +240,15 @@ public class Regex {
 			s = " |= ";
 		else if(operation.equals("xored"))
 			s = " ^= ";
-		return s+VAL.norm(matcher.group(head+"XOpVal1"));
+		return s+VAL.norm(matcher.group("val"));
 	}
-
-
-	public static String getCompRegex(String str){
-		String head = str+"XComp";
-		return "(?<"+str+">"+VAL1.get(head+"Val1")+" (?<"+head+"C1>(is|was|has|had)( not)?( ((less)|(fewer)|(greater)"+
-				"|(more)) than)?) "+VAL1.get(head+"Val2")+")";
-	}
-	public static String normalizeComparator(String str, Matcher matcher, String head){
-		String comp = matcher.group(head+"XCompC1");
+	
+	private static String compSimple = "(?<simple=val>) (is|was|has|had)( not)?( ((less)|(fewer)|(greater)|(more)) than)?)"+
+			"(?<simple=val>))";
+	private static String compRegex = "(?<val1>(?<simple=val>)) (?<C1>((is)|(was)|(has)|(had))( not)?( ((less)|(fewer)|(greater)"+
+			"|(more)) than)?) (?<val2>(?<simple=val>))";
+	public static String compNorm(Matcher matcher){
+		String comp = matcher.group("C1");
 		comp = comp.replace("is", "was");
 		comp = comp.replace("has", "was");
 		comp = comp.replace("had", "was");
@@ -213,72 +268,30 @@ public class Regex {
 		else if (comp.equals("was not greater than"))
 			s = "<=";
 
-		String val1 = matcher.group(head+"XCompVal1");
-		String val2 = matcher.group(head+"XCompVal2");
-		return VAL1.norm(val1)+s+VAL1.norm(val2);
+		String val1 = matcher.group("val1");
+		String val2 = matcher.group("val2");
+		return VAL.norm(val1)+s+VAL.norm(val2);
 	}
 
-	public static String normalizeString3(String str, Matcher matcher, String head){		
-		if(matcher.matches()){
-			String res = "";
-			for(int i=1; i<=STR_DEPTH; i++){
-				String temp = matcher.group(head+"XString3XString2String"+i);
-				if(temp != null)
-					res += "+"+STRING1.norm(temp);
-			}
-			res = res.substring(1); // Cuts off the initial plus.
+	private static String stringBaseSimple = "((?<simple=litString>)|(?<simple=val>))";
+	private static String stringBaseRegex = "((?<simple=litString>)|(?<simple=val>))";
+	public static String stringBaseNorm(Matcher matcher){
+		String str = matcher.group();
+		String res = LIT_STRING.norm(str);
+		if(res != null)
 			return res;
-		}
-		
+		res = VAL.norm(str);
+		if(res != null)
+			return res;
 		return null;
 	}
 	
-	// Allows for concatenation of strings.
-	public static String getString3Regex(String str){
-		String head = str+"XString3";
-		return "(?<"+str+">("+STRING1.get(head+"XString2String1")+getString2Regex(head, STR_DEPTH-2)+"))";
-	}
-
-	public static String getString2Regex(String str, int i){
-		String head = str+"XString2";
-		if(i <= -1)
-			return "";
-		return "("+STRING1.get(head+"String"+(STR_DEPTH-i))+getString2Regex(str, i-1)+")??";
-	}
-	
-	
-	private static String getMethodCallArgs3Regex(String str){
-		String head = str+"XMethodCallArgs3";
-		return "(?<"+str+">the result of "+Regex.VAR.get(head+"MethodName")+" using "+getMethodCallArgs1Regex(head+"Call1")+
-				getMethodCallArgs2Regex(head, ARGS_DEPTH-2)+")";
-	}
-	private static String normalizeMethodCallArgs3(String str, Matcher matcher){
-		String head = str+"XMethodCallArgs3";
-		return Regex.VAR.norm(matcher.group(head+"MethodName"))+"("+normalizeMethodCallArgs2(head, matcher)+")";
-	}
-
-	private static String getMethodCallArgs2Regex(String str, int i){
-		String head = str;
-		if(i <= -1)
-			return "";
-		return "( and "+getMethodCallArgs1Regex(head+"Call"+(ARGS_DEPTH-i))+getMethodCallArgs2Regex(str, i-1)+")??";
-	}
-	private static String normalizeMethodCallArgs2(String str, Matcher matcher){
-		String head = str+"Call";
-		String args = "";
-		for(int i=1; i<=ARGS_DEPTH; i++){
-			String temp = matcher.group(head+i);
-			if(temp != null)
-				args += ","+normalizeMethodCallArgs1(matcher, head+i);
-		}
-		args = args.substring(1); // Cuts off the initial comma.
-		return args;
-	}
-	
-	private static String getMethodCallArgs1Regex(String str){
-		return Regex.VAL1.get(str);
-	}
-	private static String normalizeMethodCallArgs1(Matcher matcher, String head){
-		return Regex.VAL1.norm(matcher.group(head));
+	private static String stringSimple = "(?<simple=stringBase>)+?";
+	private static String stringRegex = "( )?(?<first>(?<simple=stringBase>))(?<others>( )?(?<simple=stringBase>)*?)";
+	public static String stringNorm(Matcher matcher){
+		String str = VAL.norm(matcher.group("first"));
+		if(!matcher.group("others").equals(""))
+			str += "+"+STRING.norm(matcher.group("others"));
+		return str;
 	}
 }
